@@ -1,0 +1,4 @@
+[zarf]
+title=zarf
+description=Allow traffic for Zarf's docker registry
+ports=31999/tcp

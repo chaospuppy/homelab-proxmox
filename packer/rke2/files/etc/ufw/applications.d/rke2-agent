@@ -1,0 +1,4 @@
+[rke2-agent]
+title=Kubernetes Worker Node
+description=Allow traffic for Kubernetes Worker node
+ports=80/tcp|443/tcp|8472/udp|9099/tcp|9345/tcp|10250/tcp|30000:32767/tcp|30000:32767/udp

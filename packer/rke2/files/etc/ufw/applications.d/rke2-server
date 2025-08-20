@@ -1,0 +1,5 @@
+[rke2-server]
+title=Kubernetes Control Plane Node
+description=Allow traffic for Kubernetes Control Plane node
+ports=80/tcp|443/tcp|6443/tcp|8472/udp|9099/tcp|9345/tcp|10250/tcp|30000:32767/tcp|30000:32767/udp
+
