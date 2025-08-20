@@ -22,6 +22,12 @@ source "proxmox-clone" "ubuntu-tailscale" {
   template_description = var.template_description
   onboot               = true
 
+  //disks {
+    //type = "scsi"
+    //disk_size = "150G"
+    //storage_pool = "local-lvm"
+  //}
+
   # Packer Connection Settings
   ssh_username = var.ssh_username
   ssh_password = var.ssh_password
@@ -30,14 +36,41 @@ source "proxmox-clone" "ubuntu-tailscale" {
 
 build {
   sources = ["source.proxmox-clone.ubuntu-tailscale"]
+ 
+  //provisioner "shell" {
+    // TODO: Make this more dynamic
+    //inline = [
+      //"sudo pvcreate /dev/sdb",
+      //"sudo vgextend ubuntu-vg /dev/sdb",
+      //"sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv",
+      //"sudo resize2fs /dev/ubuntu-vg/ubuntu-lv"
+    //]
+  //}
 
-    provisioner "shell" {
+  provisioner "shell" {
     environment_vars = [
       "INSTALL_RKE2_VERSION=${var.rke2_version}"
     ]
     // RKE2 artifact unpacking/install must be run as root
     execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
     script          = "./scripts/rke2-install.sh"
+    timeout         = "15m"
+  }
+  
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; sudo {{ .Path }}"
+    script          = "./scripts/os-prep.sh"
+    timeout         = "15m"
+  }
+
+  provisioner "file" {
+    source = "./files"
+    destination = "/tmp"
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; sudo {{ .Path }}"
+    script          = "./scripts/rke2-config.sh"
     timeout         = "15m"
   }
 

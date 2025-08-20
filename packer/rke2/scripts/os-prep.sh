@@ -18,15 +18,15 @@ sysctl_settings["fs.file-max"]=13181250
 for key in "${!sysctl_settings[@]}"; do
   value="${sysctl_settings[$key]}"
   sysctl -w "$key=$value"
-  echo "$key=$value" > "/etc/sysctl.d/$key.conf"
+  echo "$key=$value" >"/etc/sysctl.d/$key.conf"
 done
 sysctl -p
 
-# Kernel Modules for Istio - https://istio.io/latest/docs/setup/platform-setup/prerequisites/
+# Kernel Modules for Istio -https://istio.io/latest/docs/ops/deployment/platform-requirements/
 modules=("br_netfilter" "xt_REDIRECT" "xt_owner" "xt_statistic" "iptable_mangle" "iptable_nat" "xt_conntrack" "xt_tcpudp")
 for module in "${modules[@]}"; do
   modprobe "$module"
-  echo "$module" >> "/etc/modules-load.d/istio-modules.conf"
+  echo "$module" >>"/etc/modules-load.d/istio-modules.conf"
 done
 
 # cgroupsv2 for RKE2 + NeuVector
@@ -36,7 +36,7 @@ update-grub
 # If Network Manager is being used configure it to ignore calico/flannel network interfaces - https://docs.rke2.io/known_issues#networkmanager
 if systemctl list-units --full | grep -Poi "NetworkManager.service" &>/dev/null; then
   # Indent with tabs to prevent spaces in heredoc output
-	cat <<- EOF > /etc/NetworkManager/conf.d/rke2-canal.conf
+  cat <<-EOF >/etc/NetworkManager/conf.d/rke2-canal.conf
 	[keyfile]
 	unmanaged-devices=interface-name:cali*;interface-name:flannel*
 	EOF
@@ -51,5 +51,3 @@ for service in "${services_to_disable[@]}"; do
     systemctl disable "$service.service"
   fi
 done
-
-

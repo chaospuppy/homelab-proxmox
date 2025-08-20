@@ -33,7 +33,7 @@ variable "base_template_name" {
 variable "template_name" {
   type        = string
   description = "The name of the template to create."
-  default     = "ubuntu-2504-tailscale"
+  default     = "ubuntu-2504-rke2"
 }
 
 variable "template_description" {
