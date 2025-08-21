@@ -12,8 +12,11 @@ curl -LO "https://github.com/rancher/rke2/releases/download/$INSTALL_RKE2_VERSIO
 curl -LO "https://github.com/rancher/rke2/releases/download/$INSTALL_RKE2_VERSION/rke2.linux-amd64.tar.gz"
 curl -LO "https://github.com/rancher/rke2/releases/download/$INSTALL_RKE2_VERSION/sha256sum-amd64.txt"
 curl -sfL https://get.rke2.io --output install.sh
-cd /root/rke2-artifacts/ && chmod +x install.sh
+chmod +x install.sh
 INSTALL_RKE2_ARTIFACT_PATH=/root/rke2-artifacts ./install.sh
 
 # Install etcdctl
-sudo apt install etcd-client
+curl -LO "https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz"
+tar xvf "etcd-${ETCD_VERSION}-linux-amd64.tar.gz"
+mv "etcd-${ETCD_VERSION}-linux-amd64/etcdctl" /usr/local/bin/
+chmod 755 /usr/local/bin/etcdctl

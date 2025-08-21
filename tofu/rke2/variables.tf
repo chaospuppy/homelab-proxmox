@@ -1,63 +1,157 @@
 variable "proxmox_api_url" {
   type        = string
-  description = "The URL of the Proxmox API (e.g. https://proxmox.example.com:8006/api2/json)."
+  description = "The URL of the Proxmox API (e.g. https://proxmox.example.com:8006/)."
+}
+
+variable "proxmox_insecure_url" {
+  type    = bool
+  default = true
+}
+
+# API token authentication does not provide full API access
+# variable "proxmox_api_token" {
+#   type        = string
+#   description = "The Proxmox API token id and secret."
+#   sensitive   = true
+#   default = ""
+# }
+
+variable "proxmox_api_username" {
+  type        = string
+  description = "Username of the user used by Tofu to create resources"
   sensitive   = true
 }
 
-variable "proxmox_api_token_id" {
+variable "proxmox_api_password" {
   type        = string
-  description = "The Proxmox API token ID (e.g. user@pve!token)."
+  description = "Password of the user used by Tofu to create resources"
   sensitive   = true
 }
 
-variable "proxmox_api_token_secret" {
+variable "tailscale_auth_key" {
   type        = string
-  description = "The Proxmox API token secret."
-  sensitive   = true
+  description = "Password of the user used by Tofu to create resources"
+  sensitive   = false
+}
+
+variable "tailscale_hostname" {
+  type    = string
+  default = "lobster-exit-node"
+}
+
+variable "lobster_cidr" {
+  type = string
 }
 
 variable "proxmox_node" {
   type        = string
   description = "The Proxmox node to deploy the VM on."
 }
+variable "machine_user" {
+  type    = string
+  default = "chaospuppy"
+}
 
-variable "template_name" {
-  type        = string
-  description = "The name of the VM template to clone."
+variable "clone_config" {
+  type = object({
+    datastore_id = optional(string, "local-lvm")
+    node_name    = optional(string, null)
+    retries      = optional(number, 3)
+    vm_id        = optional(number, 100)
+    full         = optional(bool, true)
+  })
+  default = {}
+}
+
+variable "cpu_config" {
+  type = object({
+    cores = optional(string, 4)
+    arch  = optional(string, "x86_64")
+    type  = optional(string, "host")
+  })
+  default = {}
+}
+
+variable "disks" {
+  type = list(object({
+    aio          = optional(string, "native")
+    backup       = optional(bool, false)
+    cache        = optional(string, "none")
+    datastore_id = optional(string, "local-lvm")
+    interface    = optional(string, "scsi2")
+    size         = optional(number, 50)
+  }))
+  default = [{}]
+}
+
+variable "memory" {
+  type = object({
+    dedicated = optional(number, 512)
+    floating  = optional(number, 512)
+    hugepages = optional(number, null)
+  })
+  default = {}
+}
+
+variable "network_devices" {
+  type = list(object({
+    bridge       = optional(string, "vmbr0")
+    disconnected = optional(bool, false)
+    enabled      = optional(bool, true)
+    firewall     = optional(bool, false)
+    mac_address  = optional(string, null)
+    model        = optional(string, "virtio")
+    vlan_id      = optional(string, null)
+  }))
+  default = [{}]
+}
+
+variable "migrate" {
+  type    = bool
+  default = false
 }
 
 variable "vm_name" {
   type        = string
   description = "The name for the new VM."
-  default     = "rke2-server-1"
+  default     = "tailscale"
 }
 
-variable "vm_cores" {
-  type        = number
-  description = "Number of CPU cores for the VM."
-  default     = 2
-}
-
-variable "vm_memory" {
-  type        = number
-  description = "Amount of RAM in MB for the VM."
-  default     = 4096
-}
-
-variable "vm_disk_size" {
+variable "operating_system" {
   type        = string
-  description = "Disk size for the VM (e.g., '20G')."
-  default     = "20G"
+  description = "The OS type for the VM"
+  default     = "l26"
 }
 
-variable "ssh_public_key" {
-  type        = string
-  description = "SSH public key to inject into the VM for access."
-  sensitive   = true
+variable "agent_config" {
+  type = object({
+    enabled = optional(bool, true)
+    timeout = optional(string, "15m")
+    type    = optional(string, "virtio")
+  })
+  default = {}
 }
 
-variable "vm_bridge" {
-  type        = string
-  description = "Proxmox network bridge for the VM."
-  default     = "vmbr0"
+variable "protection" {
+  type    = bool
+  default = false
+}
+
+variable "started" {
+  type    = bool
+  default = true
+}
+
+variable "reboot_after_update" {
+  type    = bool
+  default = true
+}
+
+variable "connection_config" {
+  type = object({
+    type           = optional(string, "ssh")
+    agent          = optional(bool, false)
+    host_interface = optional(string, "ens18")
+  })
+  default = {}
 }

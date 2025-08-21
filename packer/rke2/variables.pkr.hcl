@@ -51,6 +51,11 @@ variable "vm_name" {
   type = string
 }
 
+variable "vm_memory" {
+  type = string
+  default = "2048"
+}
+
 variable "ssh_username" {
   type    = string
   default = "packer"
@@ -64,6 +69,11 @@ variable "ssh_password" {
 variable "rke2_version" {
   type = string
   default = "v1.31.1+rke2r1"
+}
+
+variable "etcd_version" {
+  type = string
+  default = "v3.6.4"
 }
 
 variable "ubuntu_pro_token" {

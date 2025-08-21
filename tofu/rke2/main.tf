@@ -1,46 +1,104 @@
 provider "proxmox" {
-  pm_api_url          = var.proxmox_api_url
-  pm_api_token_id     = var.proxmox_api_token_id
-  pm_api_token_secret = var.proxmox_api_token_secret
-  pm_tls_insecure     = true # Set to false if you have a valid certificate for Proxmox
+  endpoint = var.proxmox_api_url
+  insecure = var.proxmox_insecure_url
+
+  username = var.proxmox_api_username
+  password = var.proxmox_api_password
+  # api_token = var.proxmox_api_token
+
+  tmp_dir = "/var/tmp"
+
+  ssh {
+    agent       = false
+    username    = var.machine_user
+    private_key = file("~/.ssh/id_rsa")
+  }
 }
 
-# Note: For this to work, you need a cloud-init enabled template in Proxmox.
-# The Proxmox QEMU Guest Agent should also be installed in the template
-# for IP address reporting to work correctly.
-resource "proxmox_vm_qemu" "rke2_server" {
-  name        = var.vm_name
-  target_node = var.proxmox_node
-  clone       = var.template_name
+resource "proxmox_virtual_environment_vm" "tailscale" {
+  name                = var.vm_name
+  description         = "Managed by Tofu"
+  node_name           = var.proxmox_node
+  started             = var.started
+  reboot_after_update = var.reboot_after_update
+  # Migrate determines behavior when the node_name is changed
+  migrate    = var.migrate
+  protection = var.protection
 
-  # VM hardware configuration
-  cores   = var.vm_cores
-  sockets = 1
-  memory  = var.vm_memory
+  # System settings
+  operating_system {
+    type = var.operating_system
+  }
 
-  # Cloud-Init configuration
-  os_type   = "cloud-init"
-  ipconfig0 = "ip=dhcp"
-  sshkeys   = var.ssh_public_key
+  cpu {
+    cores        = var.cpu_config.cores
+    architecture = var.cpu_config.arch
+    type         = var.cpu_config.type
+  }
 
-  # Resize the disk. Change 'local-lvm' to your target storage.
-  disk {
-    type    = "scsi"
-    storage = "local-lvm"
-    size    = var.vm_disk_size
+  clone {
+    datastore_id = var.clone_config.datastore_id
+    node_name    = var.clone_config.node_name
+    retries      = var.clone_config.retries
+    vm_id        = var.clone_config.vm_id
+    full         = var.clone_config.full
+  }
+
+  agent {
+    enabled = var.agent_config.enabled
+    timeout = var.agent_config.timeout
+    type    = var.agent_config.type
+
+  }
+
+  dynamic "disk" {
+    for_each = var.disks
+    content {
+      aio          = disk.value.aio
+      backup       = disk.value.backup
+      cache        = disk.value.cache
+      datastore_id = disk.value.datastore_id
+      interface    = disk.value.interface
+      size         = disk.value.size
+    }
+  }
+
+  memory {
+    dedicated = var.memory.dedicated
+    floating  = var.memory.floating
+    hugepages = var.memory.hugepages
   }
 
   # Network configuration
-  network {
-    model  = "virtio"
-    bridge = var.vm_bridge
+  dynamic "network_device" {
+    iterator = nic
+    for_each = var.network_devices
+    content {
+      bridge       = nic.value.bridge
+      disconnected = nic.value.disconnected
+      enabled      = nic.value.enabled
+      firewall     = nic.value.firewall
+      mac_address  = nic.value.mac_address
+      model        = nic.value.model
+      vlan_id      = nic.value.vlan_id
+    }
   }
 
-  # This is often needed when using cloud-init to prevent tofu from
-  # trying to re-apply network settings on every run.
-  lifecycle {
-    ignore_changes = [
-      network,
+  connection {
+    type        = var.connection_config.type
+    agent       = var.connection_config.agent
+    host        = element(element(self.ipv4_addresses, index(self.network_interface_names, var.connection_config.host_interface)), 0)
+    private_key = file("~/.ssh/id_rsa")
+    user        = var.machine_user
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo tailscale set --operator=$USER",
+      "tailscale up --auth-key=${var.tailscale_auth_key}",
+      "tailscale set --ssh",
+      "tailscale set --hostname ${var.tailscale_hostname}",
+      "tailscale set --advertise-exit-node --advertise-routes=${var.lobster_cidr}"
     ]
   }
 }

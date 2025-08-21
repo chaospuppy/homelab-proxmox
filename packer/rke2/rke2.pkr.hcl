@@ -7,7 +7,7 @@ packer {
   }
 }
 
-source "proxmox-clone" "ubuntu-tailscale" {
+source "proxmox-clone" "ubuntu-rke2" {
   # Proxmox Connection Settings
   proxmox_url              = var.proxmox_api_url
   insecure_skip_tls_verify = var.proxmox_insecure_url
@@ -22,11 +22,7 @@ source "proxmox-clone" "ubuntu-tailscale" {
   template_description = var.template_description
   onboot               = true
 
-  //disks {
-    //type = "scsi"
-    //disk_size = "150G"
-    //storage_pool = "local-lvm"
-  //}
+  memory = var.vm_memory
 
   # Packer Connection Settings
   ssh_username = var.ssh_username
@@ -35,21 +31,18 @@ source "proxmox-clone" "ubuntu-tailscale" {
 }
 
 build {
-  sources = ["source.proxmox-clone.ubuntu-tailscale"]
+  sources = ["source.proxmox-clone.ubuntu-rke2"]
+  
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
+    script          = "./scripts/os-prep.sh"
+    timeout         = "15m"
+  }
  
-  //provisioner "shell" {
-    // TODO: Make this more dynamic
-    //inline = [
-      //"sudo pvcreate /dev/sdb",
-      //"sudo vgextend ubuntu-vg /dev/sdb",
-      //"sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv",
-      //"sudo resize2fs /dev/ubuntu-vg/ubuntu-lv"
-    //]
-  //}
-
   provisioner "shell" {
     environment_vars = [
-      "INSTALL_RKE2_VERSION=${var.rke2_version}"
+      "INSTALL_RKE2_VERSION=${var.rke2_version}",
+      "ETCD_VERSION=${var.etcd_version}"
     ]
     // RKE2 artifact unpacking/install must be run as root
     execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
@@ -57,12 +50,6 @@ build {
     timeout         = "15m"
   }
   
-  provisioner "shell" {
-    execute_command = "chmod +x {{ .Path }}; sudo {{ .Path }}"
-    script          = "./scripts/os-prep.sh"
-    timeout         = "15m"
-  }
-
   provisioner "file" {
     source = "./files"
     destination = "/tmp"
@@ -82,6 +69,7 @@ build {
       "sudo apt-get clean",
       "sudo rm -rf /tmp/*",
       "sudo rm -rf /var/lib/apt/lists/*",
+      "sudo rm -rf /root/rke2-artifacts/etcd-${var.etcd_version}-linux-amd64/",
       "sudo cloud-init clean --logs --seed",
     ]
   }

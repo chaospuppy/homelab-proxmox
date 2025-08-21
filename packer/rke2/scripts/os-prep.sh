@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+apt update -y
+apt install ubuntu-advantage-tools -y
+# Register with ubuntu pro if token is provided
+if [ -n "$UBUNTU_PRO_TOKEN" ]; then
+  pro attch "$UBUNTU_PRO_TOKEN"
+fi
+
 # sysctl changes for UDS Core apps - (originally from https://docs-bigbang.dso.mil/latest/docs/prerequisites/os-preconfiguration/)
 declare -A sysctl_settings
 sysctl_settings["fs.nr_open"]=13181250
@@ -20,7 +27,7 @@ for key in "${!sysctl_settings[@]}"; do
   sysctl -w "$key=$value"
   echo "$key=$value" >"/etc/sysctl.d/$key.conf"
 done
-sysctl -p
+sysctl --system
 
 # Kernel Modules for Istio -https://istio.io/latest/docs/ops/deployment/platform-requirements/
 modules=("br_netfilter" "xt_REDIRECT" "xt_owner" "xt_statistic" "iptable_mangle" "iptable_nat" "xt_conntrack" "xt_tcpudp")
