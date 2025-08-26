@@ -51,6 +51,11 @@ variable "vm_name" {
   type = string
 }
 
+variable "starting_vm_id" {
+  type = number
+  default = null
+}
+
 variable "vm_memory" {
   type = string
   default = "2048"

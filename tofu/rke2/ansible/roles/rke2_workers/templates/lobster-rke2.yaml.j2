@@ -1,0 +1,23 @@
+server: https://{{ hostvars[groups['controlplane'][0]]['ansible_default_ipv4']['address'] }}:9345
+token: {{ rke2_token }}
+cloud-provider-name: {{ cloud_provider }}
+node-taint:{% if node_taints|length == 0 %} []{% else %}
+
+{% for taint in node_taints %}
+  - "{{ taint }}"
+{% endfor %}
+{% endif %}
+
+node-label:{% if node_labels|length == 0 %} []{% else %}
+
+{% for label in node_labels %}
+  - "{{ label }}"
+{% endfor %}
+{% endif %}
+
+tls-san:{% if tls_sans|length == 0 %} []{% else %}
+
+{% for san in tls_sans %}
+  - "{{ san }}"
+{% endfor %}
+{% endif %}

@@ -1,0 +1,5 @@
+"cloud_provider": "rancher-vsphere"
+"hostname": "worker-0"
+"is_primary": false
+"kube_apiserver_args": null
+"node_taints": []

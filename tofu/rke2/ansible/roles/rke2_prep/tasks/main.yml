@@ -1,0 +1,24 @@
+# tasks file for rke2-prep
+- name: Resize root partition
+  ansible.builtin.shell:
+    cmd: growpart /dev/sda 3 || true && touch /root/.ansible-resize-root-part
+    creates: /root/.ansible-resize-root-part
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Resize root Logical Volume
+  ansible.builtin.shell:
+    cmd: lvresize -rl +100%FREE /dev/ubuntu-vg/ubuntu-lv && touch /root/.ansible-resize-root-lv
+    creates: /root/.ansible-resize-root-lv
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Copy RKE2 STIG permissions script
+  ansible.builtin.copy:
+    src: rke2-stig-rules.sh
+    dest: /opt/rke2-stig-rules.sh
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"

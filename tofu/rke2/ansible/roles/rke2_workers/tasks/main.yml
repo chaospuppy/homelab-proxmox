@@ -1,0 +1,31 @@
+# tasks file for rke2-workers
+- name: Wait for primary control plane to come up before adding new nodes
+  ansible.builtin.wait_for:
+    host: "{{ groups.controlplane | map('extract', hostvars) | selectattr('is_primary', 'true') | map(attribute='ansible_default_ipv4.address') | first }}"
+    port: 9345
+    timeout: 300
+
+- name: Create RKE2 config directory
+  ansible.builtin.file:
+    path: /etc/rancher/rke2/config.yaml.d
+    state: directory
+    mode: '0640'
+
+- name: Add extra RKE2 config
+  ansible.builtin.template:
+    src: lobster-rke2.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml.d/lobster-rke2.yaml
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Start RKE2 agent service
+  ansible.builtin.systemd_service:
+    state: restarted
+    name: rke2-agent
+    enabled: true
+
+- name: Run RKE2 STIG Rules script
+  ansible.builtin.shell:
+    cmd: /opt/rke2-stig-rules.sh -a && touch /root/.ansible-stig-rules
+    creates: /root/.ansible-stig-rules

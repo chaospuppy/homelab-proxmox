@@ -1,0 +1,32 @@
+{% if not is_primary %}
+server: https://{{ (groups.controlplane | map('extract', hostvars) | selectattr('is_primary', 'true') | map(attribute='ansible_default_ipv4.address') | first) }}:9345
+{% endif %}
+token: {{ rke2_token }}
+cloud-provider-name: {{ cloud_provider }}
+{% if node_taints is defined and node_taints|length != 0 %}
+node-taint+:
+{% for taint in node_taints %}
+  - "{{ taint }}"
+{% endfor %}
+{% endif %}
+
+{% if node_labels is defined and node_labels|length != 0 %}
+node-label+:
+{% for label in node_labels %}
+  - "{{ label }}"
+{% endfor %}
+{% endif %}
+
+{% if tls_sans is defined and tls_sans|length != 0 %}
+tls-san+:
+{% for san in tls_sans %}
+  - "{{ san }}"
+{% endfor %}
+{% endif %}
+
+{% if kube_apiserver_args is defined and kube_apiserver_args|length != 0 %}
+kube-apiserver-arg+:
+{% for arg in kube_apiserver_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}
