@@ -1,6 +1,8 @@
 # Local .terraform directories
 **/.terraform/*
 
+**/ansible/host_vars/*
+
 # .tfstate files
 *.tfstate
 *.tfstate.*

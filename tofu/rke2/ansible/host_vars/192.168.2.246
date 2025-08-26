@@ -1,5 +1,0 @@
-"cloud_provider": "rancher-vsphere"
-"hostname": "control-plane-2"
-"is_primary": false
-"kube_apiserver_args": []
-"node_taints": []
