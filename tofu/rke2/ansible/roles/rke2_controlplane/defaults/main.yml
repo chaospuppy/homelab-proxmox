@@ -1,9 +1,6 @@
----
 # defaults file for rke2
 rke2_token: ""
 cloud_provider: ""
-vsphere_csi_username: ""
-vsphere_csi_password: ""
 node_taints: []
 node_labels: []
 tls_sans: []
