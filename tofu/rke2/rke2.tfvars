@@ -9,19 +9,18 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "controlplane"
       host_vars = {
         is_primary          = true
-        cloud_provider      = "rancher-vsphere"
         node_taints         = []
         kube_apiserver_args = []
       }
@@ -33,18 +32,17 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "controlplane"
       host_vars = {
-        cloud_provider      = "rancher-vsphere"
         node_taints         = []
         kube_apiserver_args = []
       }
@@ -56,18 +54,17 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "controlplane"
       host_vars = {
-        cloud_provider      = "rancher-vsphere"
         node_taints         = []
         kube_apiserver_args = []
       }
@@ -82,19 +79,18 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "workers"
       host_vars = {
-        cloud_provider = "rancher-vsphere"
-        node_taints    = []
+        node_taints = []
       }
     }
   }
@@ -107,19 +103,18 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "workers"
       host_vars = {
-        cloud_provider = "rancher-vsphere"
-        node_taints    = []
+        node_taints = []
       }
     }
   }
@@ -132,19 +127,18 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "50"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "workers"
       host_vars = {
-        cloud_provider = "rancher-vsphere"
-        node_taints    = []
+        node_taints = []
       }
     }
   }
@@ -157,18 +151,17 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 2048,
-      floating  = 2048,
+      dedicated = 8192,
+      floating  = 8192,
     }
     disks_config = [
       {
-        size = "100"
+        size = "200"
       }
     ]
     ansible_info = {
       group = "workers"
       host_vars = {
-        cloud_provider = "rancher-vsphere"
         node_taints = [
           "is-nexus=true:NoSchedule"
         ]

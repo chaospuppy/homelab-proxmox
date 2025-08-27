@@ -54,7 +54,7 @@ variable "rke2_nodes" {
     }), {}),
     proxmox_node = string,
     cpu_config = optional(object({
-      cores = optional(string, 2)
+      cores = optional(string, 4)
       arch  = optional(string, "x86_64")
       type  = optional(string, "host")
       numa  = optional(bool, false)
@@ -81,6 +81,7 @@ variable "rke2_nodes" {
       datastore_id = optional(string, "local-lvm")
       interface    = optional(string, "scsi2")
       size         = optional(number, 50)
+      device_name  = optional(string, null)
     })), []),
     agent_config = optional(object({
       enabled = optional(bool, true)

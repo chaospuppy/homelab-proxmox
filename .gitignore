@@ -1,7 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Ignore resources creates by/for ansible
 **/ansible/host_vars/*
+**/ansible/rke2.yaml
 
 # .tfstate files
 *.tfstate

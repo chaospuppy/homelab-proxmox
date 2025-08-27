@@ -35,6 +35,13 @@ locals {
   node_to_vars = {
     for node in keys(var.rke2_nodes) : node => var.rke2_nodes[node].ansible_info.host_vars
   }
+
+  # Three extra devices should be enough...
+  device_names = [
+    "/dev/sdb",
+    "/dev/sdc",
+    "/dev/sdd"
+  ]
 }
 
 resource "random_string" "rke2_token" {
@@ -137,7 +144,8 @@ resource "local_sensitive_file" "host_vars" {
     merge(
       each.value,
       {
-        "hostname" = each.key,
+        "hostname"         = each.key,
+        "additional_disks" = [for i, d in var.rke2_nodes[each.key].disks_config : local.device_names[i]]
       }
     )
   )
@@ -150,7 +158,7 @@ resource "local_file" "ansible_inventory" {
 
 resource "terraform_data" "ansible" {
   triggers_replace = concat(
-    values({ for key, vm in proxmox_virtual_environment_vm.rke2 : key => vm.mac_addresses[1] }),
+    values({ for key, vm in proxmox_virtual_environment_vm.rke2 : key => vm.mac_addresses }),
     [local_file.ansible_inventory.content_md5],
     values({ for key, file in local_sensitive_file.host_vars : key => file.content_md5 })
   )
@@ -160,7 +168,7 @@ resource "terraform_data" "ansible" {
     command     = <<EOT
     sleep 20 && ansible-playbook playbook.yaml -i ./ansible-inventory -v \
       --ssh-extra-args="-o Ciphers='aes256-ctr,aes192-ctr,aes128-ctr' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-      --extra-vars "ansible_ssh_timeout=60 ansible_user=${var.persistent_admin_username} ansible_password=${var.persistent_admin_password} rke2_token=${local.rke2_token}" -b
+      --extra-vars "ansible_ssh_timeout=60 ansible_user=${nonsensitive(var.persistent_admin_username)} ansible_password=${nonsensitive(var.persistent_admin_password)} rke2_token=${nonsensitive(local.rke2_token)}" -b
     EOT
   }
   depends_on = [
