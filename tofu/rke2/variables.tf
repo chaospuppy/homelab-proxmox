@@ -1,63 +1,140 @@
 variable "proxmox_api_url" {
   type        = string
-  description = "The URL of the Proxmox API (e.g. https://proxmox.example.com:8006/api2/json)."
+  description = "The URL of the Proxmox API (e.g. https://proxmox.example.com:8006/)."
+}
+
+variable "proxmox_insecure_url" {
+  type    = bool
+  default = true
+}
+
+# API token authentication does not provide full API access
+# variable "proxmox_api_token" {
+#   type        = string
+#   description = "The Proxmox API token id and secret."
+#   sensitive   = true
+#   default = ""
+# }
+
+variable "proxmox_api_username" {
+  type        = string
+  description = "Username of the user used by Tofu to create resources"
   sensitive   = true
 }
 
-variable "proxmox_api_token_id" {
+variable "proxmox_api_password" {
   type        = string
-  description = "The Proxmox API token ID (e.g. user@pve!token)."
+  description = "Password of the user used by Tofu to create resources"
   sensitive   = true
 }
 
-variable "proxmox_api_token_secret" {
-  type        = string
-  description = "The Proxmox API token secret."
-  sensitive   = true
+variable "persistent_admin_username" {
+  type = string
 }
 
-variable "proxmox_node" {
-  type        = string
-  description = "The Proxmox node to deploy the VM on."
+variable "persistent_admin_password" {
+  type      = string
+  sensitive = true
 }
 
-variable "template_name" {
-  type        = string
-  description = "The name of the VM template to clone."
+variable "debug" {
+  type        = bool
+  default     = false
+  description = "If debug is enabled, then the token generated from Rancher will not be marked sensative, allowing more complete logging."
 }
 
-variable "vm_name" {
-  type        = string
-  description = "The name for the new VM."
-  default     = "rke2-server-1"
+variable "rke2_nodes" {
+  type = map(object({
+    clone_config = optional(object({
+      datastore_id = optional(string, "local-lvm")
+      node_name    = optional(string, null)
+      retries      = optional(number, 3)
+      vm_id        = optional(number, 100)
+      full         = optional(bool, true)
+    }), {}),
+    proxmox_node = string,
+    cpu_config = optional(object({
+      cores = optional(string, 4)
+      arch  = optional(string, "x86_64")
+      type  = optional(string, "host")
+      numa  = optional(bool, false)
+    }), {}),
+    memory_config = optional(object({
+      dedicated = optional(number, 512)
+      floating  = optional(number, 512)
+      hugepages = optional(number, null)
+    }), {}),
+    os = optional(string, "l26"),
+    network_devices = optional(list(object({
+      bridge       = optional(string, "vmbr0")
+      disconnected = optional(bool, false)
+      enabled      = optional(bool, true)
+      firewall     = optional(bool, false)
+      mac_address  = optional(string, null)
+      model        = optional(string, "virtio")
+      vlan_id      = optional(string, null)
+    })), []),
+    disks_config = optional(list(object({
+      aio          = optional(string, "native")
+      backup       = optional(bool, false)
+      cache        = optional(string, "none")
+      datastore_id = optional(string, "local-lvm")
+      interface    = optional(string, "scsi2")
+      size         = optional(number, 50)
+      device_name  = optional(string, null)
+    })), []),
+    agent_config = optional(object({
+      enabled = optional(bool, true)
+      timeout = optional(string, "15m")
+      type    = optional(string, "virtio")
+    }), {}),
+    ansible_info = object(
+      {
+        group = string
+        host_vars = object({
+          is_primary          = optional(bool, false)
+          cloud_provider      = optional(string)
+          node_taints         = optional(list(string))
+          kube_apiserver_args = optional(list(string))
+        })
+      }
+    ),
+    connection_config = optional(object({
+      type           = optional(string, "ssh")
+      agent          = optional(bool, false)
+      host_interface = optional(string, "ens18")
+    }), {})
+
+  }))
+  description = "Map of RKE2 nodes with configurations including template name, CPU count, memory size, operating system, network settings, disk configuration, and Ansible information."
+
+  validation {
+    condition     = length([for node in var.rke2_nodes : 1 if node.ansible_info.group == "controlplane" && node.ansible_info.host_vars.is_primary]) == 1
+    error_message = "Exactly one control plane node must be set as the primary node."
+  }
 }
 
-variable "vm_cores" {
-  type        = number
-  description = "Number of CPU cores for the VM."
-  default     = 2
+variable "machine_user" {
+  type    = string
+  default = "chaospuppy"
 }
 
-variable "vm_memory" {
-  type        = number
-  description = "Amount of RAM in MB for the VM."
-  default     = 4096
+variable "migrate" {
+  type    = bool
+  default = false
 }
 
-variable "vm_disk_size" {
-  type        = string
-  description = "Disk size for the VM (e.g., '20G')."
-  default     = "20G"
+variable "protection" {
+  type    = bool
+  default = false
 }
 
-variable "ssh_public_key" {
-  type        = string
-  description = "SSH public key to inject into the VM for access."
-  sensitive   = true
+variable "started" {
+  type    = bool
+  default = true
 }
 
-variable "vm_bridge" {
-  type        = string
-  description = "Proxmox network bridge for the VM."
-  default     = "vmbr0"
+variable "reboot_after_update" {
+  type    = bool
+  default = true
 }

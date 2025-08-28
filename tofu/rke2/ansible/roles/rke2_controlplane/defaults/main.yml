@@ -1,0 +1,6 @@
+# defaults file for rke2
+rke2_token: ""
+cloud_provider: ""
+node_taints: []
+node_labels: []
+tls_sans: []

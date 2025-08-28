@@ -1,0 +1,60 @@
+- name: Add localhost entry in /etc/hosts
+  ansible.builtin.shell:
+    cmd: |
+      echo "127.0.0.1 localhost" >> /etc/hosts
+      touch /root/.ansible-configure-localhost-entry
+    creates: /root/.ansible-configure-localhost-entry
+  when:
+    - ansible_facts['os_family'] | lower == 'debian'
+
+- name: Initialize additional disks as physical volumes
+  ansible.builtin.shell:
+    cmd: |
+      if ! pvs | grep -q "{{ item }}"; then
+        pvcreate {{ item }}
+        echo "initialized {{ item }}" >> /root/.ansible-pv-initialized{{ item | regex_replace('/', '-') }}
+      fi
+    creates: /root/.ansible-pv-initialized{{ item | regex_replace('/', '-') }}
+  loop: "{{ additional_disks }}"
+  when:
+    - ansible_facts['os_family'] | lower == 'debian'
+
+- name: Add physical volumes to ubuntu-vg volume group
+  ansible.builtin.shell:
+  args:
+    executable: /bin/bash
+    cmd: |
+      if [[ $(sudo pvdisplay {{ item }} | grep "VG Name" | awk '{print $3}') = "" ]]; then
+        vgextend ubuntu-vg {{ item }}
+        echo "added {{ item }} to ubuntu-vg" >> /root/.ansible-vg-extended{{ item | regex_replace('/', '-') }}
+      fi
+    creates: /root/.ansible-vg-extended{{ item | regex_replace('/', '-') }}
+  loop: "{{ additional_disks }}"
+  when:
+    - ansible_facts['os_family'] | lower == 'debian'
+
+- name: Extend logical volume with additional space
+  ansible.builtin.shell:
+    cmd: |
+      lvresize -l +100%FREE /dev/ubuntu-vg/ubuntu-lv || true
+  when:
+    - ansible_facts['os_family'] | lower == 'debian'
+
+- name: Resize logical volume with additional space
+  ansible.builtin.shell:
+    cmd: |
+      resize2fs /dev/ubuntu-vg/ubuntu-lv || true
+  when:
+    - ansible_facts['os_family'] | lower == 'debian'
+
+- name: Copy RKE2 STIG permissions script
+  ansible.builtin.copy:
+    src: rke2-stig-rules.sh
+    dest: /opt/rke2-stig-rules.sh
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
