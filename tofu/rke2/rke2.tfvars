@@ -168,7 +168,7 @@ rke2_nodes = {
     ansible_info = {
       group = "workers"
       host_vars = {
-        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve1"]
         node_taints = [
           "is-nexus=true:NoSchedule"
         ]
