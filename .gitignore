@@ -5,9 +5,18 @@
 **/ansible/host_vars/*
 **/ansible/rke2.yaml
 
+.proxmox
+
+# Ignore build bundles/packages
+*.tar.zst
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
+
+# Ignore certificate and key files
+**/*.crt
+**/*.key
 
 # Crash log files
 crash.log

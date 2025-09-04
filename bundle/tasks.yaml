@@ -1,0 +1,40 @@
+variables:
+  - name: BUNDLE_VERSION
+    default: 0.0.2
+  - name: ADMIN_TLS_KEY_FILE
+    default: "./admin.key"
+  - name: ADMIN_TLS_CERT_FILE
+    default: "./admin.crt"
+  - name: TENANT_TLS_KEY_FILE
+    default: "./tenant.key"
+  - name: TENANT_TLS_CERT_FILE
+    default: "./tenant.crt"
+tasks:
+  - name: build-bundle
+    actions:
+      - cmd: echo "Clearing sbom cache" && rm -rf ./build/sbom/
+      - task: build-package
+        with:
+          package-directory: minio-config
+      - task: build-package
+        with:
+          package-directory: authservice-networking
+      - task: build-package
+        with:
+          package-directory: postgres-db-secrets
+      - task: build-package
+        with:
+          package-directory: proxmox-csi
+      - cmd: ./uds create --version ${BUNDLE_VERSION} . -a amd64 --confirm
+
+  - name: build-package
+    inputs:
+      package-directory:
+        description: the name of the directory in which the zarf.yaml to be built resides
+    actions:
+      - cmd: ./uds zarf package create ./src/$INPUT_PACKAGE_DIRECTORY -o ./build/ --sbom-out ./bundle/build/sbom -a amd64 --confirm
+
+  - name: deploy-bundle
+    envPath: ../.proxmox
+    actions:
+      - cmd: ./uds deploy uds-bundle-lobster-amd64-${BUNDLE_VERSION}.tar.zst --confirm --set ADMIN_TLS_KEY="$(cat ${ADMIN_TLS_KEY_FILE} | base64)" --set ADMIN_TLS_CERT="$(cat ${ADMIN_TLS_CERT_FILE} | base64)" --set TENANT_TLS_KEY="$(cat ${TENANT_TLS_KEY_FILE} | base64)" --set TENANT_TLS_CERT="$(cat ${TENANT_TLS_CERT_FILE} | base64)" --set PROXMOX_TOKEN_ID="${PROXMOX_TOKEN_ID}" --set PROXMOX_TOKEN_SECRET="${PROXMOX_TOKEN_SECRET}"

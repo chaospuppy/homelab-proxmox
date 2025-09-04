@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ProxyConfig
+metadata:
+  name: dns-capture
+  namespace: authservice
+spec:
+  concurrency: 0
+  environmentVariables:
+    ISTIO_META_DNS_CAPTURE: "true"
+    ISTIO_META_DNS_AUTO_ALLOCATE: "true"

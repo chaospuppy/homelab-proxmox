@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/defenseunicorns/zarf/main/zarf.schema.json
+kind: ZarfPackageConfig
+metadata:
+  name: postgres-db-secrets
+  version: "0.1.2"
+  architecture: amd64
+
+components:
+  - name: postgres-password
+    required: true
+    actions:
+      onDeploy:
+        before:
+          - cmd: |
+              while ! uds zarf tools kubectl get secret nexus.nexus.pg-cluster.credentials.postgresql.acid.zalan.do -n nexus; do
+                echo "Waiting for secret nexus.nexus.pg-cluster.credentials.postgresql.acid.zalan.do to be created..."
+                sleep 2
+              done
+          - cmd: uds zarf tools kubectl get secret -n nexus nexus.nexus.pg-cluster.credentials.postgresql.acid.zalan.do --template={{.data.password}} | base64 -d
+            mute: true
+            setVariables:
+              - name: NEXUS_DB_PASSWORD
+                sensitive: true
+          - cmd: uds zarf tools kubectl get secret -n nexus nexus.nexus.pg-cluster.credentials.postgresql.acid.zalan.do --template={{.data.username}} | base64 -d
+            mute: true
+            setVariables:
+              - name: NEXUS_DB_USERNAME
+                sensitive: true
+          - cmd: |
+              while ! uds zarf tools kubectl get secret keycloak.keycloak.pg-cluster.credentials.postgresql.acid.zalan.do -n keycloak; do
+                echo "Waiting for secret keycloak.keycloak.pg-cluster.credentials.postgresql.acid.zalan.do to be created..."
+                sleep 2
+              done
+          - cmd: uds zarf tools kubectl get secret -n keycloak keycloak.keycloak.pg-cluster.credentials.postgresql.acid.zalan.do --template={{.data.password}} | base64 -d
+            mute: true
+            setVariables:
+              - name: KEYCLOAK_DB_PASSWORD
+                sensitive: true
+          - cmd: uds zarf tools kubectl get secret -n keycloak keycloak.keycloak.pg-cluster.credentials.postgresql.acid.zalan.do --template={{.data.username}} | base64 -d
+            mute: true
+            setVariables:
+              - name: KEYCLOAK_DB_USERNAME
+                sensitive: true
