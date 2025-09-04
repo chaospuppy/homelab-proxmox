@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: sso-tenant-authservice
+  namespace: authservice
+spec:
+  endpoints:
+  - address: tenant-ingressgateway.istio-tenant-gateway.svc.cluster.local
+  hosts:
+  - sso.###ZARF_VAR_DOMAIN###
+  location: MESH_INTERNAL
+  ports:
+  - name: https
+    number: 443
+    protocol: HTTPS
+  resolution: DNS

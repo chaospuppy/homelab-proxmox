@@ -1,0 +1,22 @@
+kind: ZarfPackageConfig
+metadata:
+  name: authservice-networking
+  description: "Network configurations for authservice"
+  version: 0.1.0
+
+variables:
+  - name: DOMAIN
+
+components:
+  - name: deploy-serviceentries
+    required: true
+    manifests:
+      - name: serviceentries
+        files:
+          - ./serviceentries.yaml
+  - name: deploy-proxyconfig
+    required: true
+    manifests:
+      - name: proxyconfig
+        files:
+          - ./proxyconfig.yaml

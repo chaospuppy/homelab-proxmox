@@ -1,0 +1,366 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/defenseunicorns/uds-cli/main/uds.schema.json
+
+kind: UDSBundle
+metadata:
+  name: lobster
+  description: lobster on proxmox
+  architecture: amd64
+  version: 0.0.1
+
+packages:
+  # YOLO package that deploys the CSI for Proxmox
+  - name: proxmox-csi-plugin
+    path: ./build/
+    ref: 0.0.2
+
+  - name: init
+    repository: ghcr.io/zarf-dev/packages/init
+    ref: v0.59.0
+
+  - name: metallb-package
+    repository: ghcr.io/uds-packages/metallb
+    ref: 0.15.2-uds.2-registry1
+
+  # Deploy uds-core base functional layer which includes istio, uds-operator, and uds CRDs
+  - name: core-base
+    repository: ghcr.io/defenseunicorns/packages/uds/core-base
+    ref: 0.38.0-registry1
+    overrides:
+      istio-admin-gateway:
+        uds-istio-config:
+          variables:
+            - name: ADMIN_TLS_CERT
+              description: "The TLS cert for the admin gateway (must be base64 encoded)"
+              path: tls.cert
+            - name: ADMIN_TLS_KEY
+              description: "The TLS key for the admin gateway (must be base64 encoded)"
+              path: tls.key
+        gateway:
+          values:
+            - path: autoscaling.enabled
+              value: true
+            - path: autoscaling.targetMemoryUtilizationPercentage
+              value: 80
+            - path: resources.requests.cpu
+              value: 500m
+            - path: resources.requests.memory
+              value: 200Mi
+      istio-tenant-gateway:
+        uds-istio-config:
+          variables:
+            - name: TENANT_TLS_CERT
+              description: "The TLS cert for the tenant gateway (must be base64 encoded)"
+              path: tls.cert
+            - name: TENANT_TLS_KEY
+              description: "The TLS key for the tenant gateway (must be base64 encoded)"
+              path: tls.key
+        gateway:
+          values:
+            - path: autoscaling.enabled
+              value: true
+            - path: autoscaling.minReplicas
+              value: 2
+            - path: autoscaling.targetMemoryUtilizationPercentage
+              value: 80
+            - path: resources.requests.cpu
+              value: 500m
+            - path: resources.requests.memory
+              value: 200Mi
+
+  # Deploy minio so that loki and velero can use it as their s3 backend
+  - name: minio-package
+    repository: ghcr.io/defenseunicorns/packages/uds/minio-operator
+    ref: 7.0.0-uds.2-registry1
+    overrides:
+      minio-operator:
+        uds-minio-config:
+          variables:
+            - name: MINIO_APPS
+              description: Minio operator app configuration
+              path: apps
+        minio-tenant:
+          variables:
+            - name: MINIO_POOL_NAME
+              path: "tenant.pools[0].name"
+              description: "Minios Pool Name"
+              default: "pool-0"
+            - name: MINIO_VOLSPER_SERVER
+              path: "tenant.pools[0].volumesPerServer"
+              description: "Minios Volumes per server"
+              default: "1"
+            - name: MINIO_SERVERS
+              path: "tenant.pools[0].servers"
+              description: "Minios servers"
+              default: "1"
+            - name: MINIO_PVC_SIZE
+              path: "tenant.pools[0].size"
+              description: "Minios PVC Size"
+              default: "20Gi"
+
+  - name: minio-config
+    path: ./build/
+    ref: 0.0.1
+    exports:
+      - name: LOKI_S3_ACCESS_KEY_ID
+      - name: LOKI_S3_SECRET_ACCESS_KEY
+
+  # Deploys databases used for keycloak and nexus
+  - name: postgres-operator
+    repository: ghcr.io/defenseunicorns/packages/uds/postgres-operator
+    ref: 1.14.0-uds.10-registry1
+    overrides:
+      postgres-operator:
+        uds-postgres-config:
+          values:
+            # Remove once we update to an ambient-enabled uds-core
+            - path: ambient
+              value: false
+          variables:
+            - name: POSTGRESQL
+              description: "Configure postgres using CRs via the uds-postgres-config chart"
+              path: postgresql
+              default:
+                enabled: true
+                parameters:
+                  - name: max_slot_wal_keep_size
+                    value: 1GB
+                  - name: max_connections
+                    value: '200'
+                teamId: "uds"
+                volume:
+                  size: "10Gi"
+                numberOfInstances: 2
+                users:
+                  nexus.nexus: []
+                  keycloak.keycloak: []
+                databases:
+                  nexusdb: nexus.nexus
+                  keycloakdb: keycloak.keycloak
+                version: "14"
+                ingress:
+                  - remoteNamespace: nexus
+                  - remoteNamespace: keycloak
+                resources:
+                  limits:
+                    cpu: "1"
+                    memory: 4Gi
+                  requests:
+                    cpu: 200m
+                    memory: 500Mi
+
+  - name: postgres-db-secrets
+    path: ./build/
+    ref: 0.1.2
+    exports:
+      - name: KEYCLOAK_DB_PASSWORD
+      - name: KEYCLOAK_DB_USERNAME
+      - name: NEXUS_DB_PASSWORD
+      - name: NEXUS_DB_USERNAME
+
+  # UDS core identity layer which includes keycloak and auth service
+  # Must be run with postgres-db-secrets package if not deploying full bundle
+  - name: core-identity-authorization
+    repository: ghcr.io/defenseunicorns/packages/uds/core-identity-authorization
+    ref: 0.38.0-registry1
+    imports:
+      - name: KEYCLOAK_DB_PASSWORD
+        package: postgres-db-secrets
+      - name: KEYCLOAK_DB_USERNAME
+        package: postgres-db-secrets
+    overrides:
+      keycloak:
+        keycloak:
+          values:
+            - path: devMode
+              value: false
+            - path: autoscaling.enabled
+              value: true
+          variables:
+            - name: KEYCLOAK_DB_HOST
+              path: postgresql.host
+              default: pg-cluster.postgres.svc.cluster.local
+            - name: KEYCLOAK_DB_DATABASE
+              path: postgresql.database
+              default: keycloakdb
+            - name: KEYCLOAK_DB_USERNAME
+              path: postgresql.username
+            - name: KEYCLOAK_DB_PASSWORD
+              path: postgresql.password
+
+  - name: authservice-networking
+    path: ./build/
+    ref: 0.1.0
+
+  # UDS core runtime security layer which includes neuvector
+  - name: core-runtime-security
+    repository: ghcr.io/defenseunicorns/packages/uds/core-runtime-security
+    ref: 0.38.0-registry1
+    overrides:
+      neuvector:
+        core:
+          values:
+            - path: "enforcer.tolerations"
+              value:
+                - operator: "Exists"
+                  effect: "NoSchedule"
+
+  # UDS core logging stack which includes loki and vector
+  - name: core-logging
+    repository: ghcr.io/defenseunicorns/packages/uds/core-logging
+    ref: 0.38.0-registry1
+    imports:
+      - name: LOKI_S3_ACCESS_KEY_ID
+        package: minio-config
+      - name: LOKI_S3_SECRET_ACCESS_KEY
+        package: minio-config
+    overrides:
+      vector:
+        vector:
+          values:
+            - path: "tolerations"
+              value:
+                - operator: "Exists"
+                  effect: "NoSchedule"
+      loki:
+        loki:
+          variables:
+            - name: LOKI_CHUNKS_BUCKET
+              description: "The object storage bucket for Loki chunks"
+              path: loki.storage.bucketNames.chunks
+            - name: LOKI_RULER_BUCKET
+              description: "The object storage bucket for Loki ruler"
+              path: loki.storage.bucketNames.ruler
+            - name: LOKI_ADMIN_BUCKET
+              description: "The object storage bucket for Loki admin"
+              path: loki.storage.bucketNames.admin
+            - name: LOKI_S3_ENDPOINT
+              description: "The S3 endpoint"
+              path: loki.storage.s3.endpoint
+            - name: LOKI_S3_REGION
+              description: "The S3 region"
+              path: loki.storage.s3.region
+            - name: LOKI_S3_ACCESS_KEY_ID
+              description: "The S3 Access Key ID"
+              path: loki.storage.s3.accessKeyId
+            - name: LOKI_S3_SECRET_ACCESS_KEY
+              path: loki.storage.s3.secretAccessKey
+              description: "The S3 Secret Access Key"
+            - name: LOKI_S3_PATH_STYLE
+              path: loki.storage.s3.s3ForcePathStyle
+              description: "S3 path style"
+              default: true
+            - name: LOKI_S3_SIGNATURE_VERSION
+              path: loki.storage.s3.signatureVersion
+              description: "S3 API signature version"
+              default: "v4"
+          values:
+            # Override default dns service name for Loki Gateway at create-time
+            - path: "global.dnsService"
+              value: "rke2-coredns-rke2-coredns"
+
+  # UDS core monitoring stack which includes prometheus and Grafana
+  - name: core-monitoring
+    repository: ghcr.io/defenseunicorns/packages/uds/core-monitoring
+    ref: 0.38.0-registry1
+
+  # UDS core metrics server which includes metrics-server
+  - name: core-metrics-server
+    repository: ghcr.io/defenseunicorns/packages/uds/core-metrics-server
+    ref: 0.38.0-registry1
+
+  # UDS UI
+  - name: uds-runtime
+    repository: ghcr.io/defenseunicorns/packages/private/uds/uds-runtime
+    ref: 0.21.4-registry1
+
+  # Must be run with postgres-db-secrets package if not deploying full bundle
+  - name: nexus
+    repository: ghcr.io/uds-packages/nexus
+    ref: 3.79.0-09-uds.2-registry1
+    imports:
+      - name: NEXUS_DB_PASSWORD
+        package: postgres-db-secrets
+      - name: NEXUS_DB_USERNAME
+        package: postgres-db-secrets
+    overrides:
+      nexus:
+        nexus:
+          variables:
+            - path: "nexus.resources.requests.cpu"
+              name: NEXUS_CPU_REQUESTS
+            - path: "nexus.resources.requests.memory"
+              name: NEXUS_MEMORY_REQUESTS
+            - path: "nexus.resources.limits.cpu"
+              name: NEXUS_CPU_LIMITS
+            - path: "nexus.resources.limits.memory"
+              name: NEXUS_MEMORY_LIMITS
+            - path: "persistence.storageSize"
+              name: NEXUS_PVC_SIZE
+          values:
+            - path: "nexus.docker"
+              value:
+                enabled: true
+                registries:
+                  - host: "lobster-registry.###ZARF_VAR_DOMAIN###"
+                    port: 5000
+            - path: "istio.enabled"
+              value: true
+            - path: "istio.injection"
+              value: "enabled"
+            - path: "istio.nexus.gateways"
+              value:
+                - "istio-tenant-gateway/tenant-gateway"
+            - path: "tolerations"
+              value:
+                - key: "is-nexus"
+                  operator: "Equal"
+                  value: "true"
+                  effect: "NoSchedule"
+
+        uds-nexus-config:
+          variables:
+            - path: "postDeployJob.repo.repositories"
+              name: NEXUS_REPOSITORIES
+          values:
+            - path: "sso.enabled"
+              value: true
+            - path: "customNetworkPolicies"
+              value:
+                - direction: "Ingress"
+                  selector:
+                    app: nexus-repository-manager
+                  remoteNamespace: istio-tenant-gateway
+                  remoteSelector:
+                    app: tenant-ingressgateway
+                  port: 5000
+                  description: "Tenant gateway to lobster-registry repository"
+            - path: "postDeployJob.enabled"
+              value: true
+            - path: "postDeployJob.realm.enabled"
+              value: true
+            - path: "postDeployJob.saml.enabled"
+              value: true
+            - path: "postDeployJob.role.enabled"
+              value: true
+            - path: "postDeployJob.routingRules.enabled"
+              value: false
+            - path: "postDeployJob.repo.enabled"
+              value: true
+            - path: "postDeployJob.user.enabled"
+              value: false
+            - path: "postDeployJob.userTokens.enabled"
+              value: true
+            - path: "postDeployJob.userTokens.data.expirationDays"
+              value: 365
+            - path: "postDeployJob.realm.realms"
+              value:
+                - "NexusAuthenticatingRealm"
+                - "SamlRealm"
+                - "User-Token-Realm"
+            - path: "postDeployJob.role.roles"
+              value:
+                - id: "/UDS Core/Admin"
+                  name: "nexus-admin"
+                  description: "Nexus admin role"
+                  roles:
+                    - "nx-admin"

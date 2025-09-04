@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/defenseunicorns/uds-cli/main/uds.schema.json
+options:
+  log_level: info
+  architecture: amd64
+  no_log_file: false
+  no_progress: false
+  uds_cache: /tmp/uds-cache
+  tmp_dir: /tmp/tmp_dir
+  insecure: false
+  oci_concurrency: 3
+shared:
+  REALM: uds
+  DOMAIN: lobster.icu
+variables:
+  init:
+    INIT_STORAGE_CLASS: "proxmox-data-ext4"
+  metallb-package:
+    INTERFACE: "ens18"
+    IP_ADDRESS_ADMIN_INGRESSGATEWAY: "192.168.2.20"
+    IP_ADDRESS_PASSTHROUGH_INGRESSGATEWAY: "192.168.2.21"
+    IP_ADDRESS_TENANT_INGRESSGATEWAY: "192.168.2.22"
+  minio-package:
+    MINIO_APPS:
+      - name: loki
+        user: loki
+        namespace: loki
+        bucketNames:
+          - loki-chunks
+          - loki-ruler
+          - loki-admin
+        policy: ""
+        copyPassword:
+          enabled: true
+          secretName: minio-loki
+          secretIDKey: access_key
+          secretPasswordKey: secret_key
+  core-logging:
+    LOKI_S3_ENDPOINT: http://uds-minio-hl.minio.svc.cluster.local:9000
+    LOKI_S3_REGION: ""
+    LOKI_CHUNKS_BUCKET: loki-chunks
+    LOKI_RULER_BUCKET: loki-ruler
+    LOKI_ADMIN_BUCKET: loki-admin
+  nexus:
+    NEXUS_VM_PARAMS: -Dcom.redhat.fips=false -Xms8G -Xmx8G -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -Djava.util.prefs.userRoot=/nexus-data/javaprefs
+    NEXUS_DB_ENDPOINT: pg-cluster.postgres.svc.cluster.local
+    NEXUS_SSO_ENABLED: true
+    NEXUS_CPU_REQUESTS: "2"
+    NEXUS_CPU_LIMITS: "2"
+    NEXUS_MEMORY_REQUESTS: 4Gi
+    NEXUS_MEMORY_LIMITS: 8Gi
+    NEXUS_PVC_SIZE: 50Gi
+    NEXUS_REPOSITORIES:
+      - name: lobster-reigstry
+        format: docker
+        type: hosted
+        repoData:
+          name: lobster-registry
+          online: true
+          storage:
+            blobStoreName: default
+            strictContentTypeValidation: true
+            writePolicy: allow
+          cleanup:
+            policyNames:
+              - string
+          component:
+            proprietaryComponents: true
+          docker:
+            v1Enabled: false
+            forceBasicAuth: true
+            httpPort: 5000
+      - name: lobster-artifacts
+        format: raw
+        type: hosted
+        repoData:
+          name: lobster-artifacts
+          online: true
+          storage:
+            blobStoreName: default
+            strictContentTypeValidation: false
+            writePolicy: allow
+          cleanup:
+            policyNames:
+              - string
+          component:
+            proprietaryComponents: false
+          raw:
+            contentDisposition: ATTACHMENT

@@ -45,6 +45,7 @@ variable "debug" {
 
 variable "rke2_nodes" {
   type = map(object({
+    scsi_hardware = optional(string, "virtio-scsi-single")
     clone_config = optional(object({
       datastore_id = optional(string, "local-lvm")
       node_name    = optional(string, null)
@@ -54,7 +55,7 @@ variable "rke2_nodes" {
     }), {}),
     proxmox_node = string,
     cpu_config = optional(object({
-      cores = optional(string, 4)
+      cores = optional(string, 6)
       arch  = optional(string, "x86_64")
       type  = optional(string, "host")
       numa  = optional(bool, false)
@@ -79,9 +80,10 @@ variable "rke2_nodes" {
       backup       = optional(bool, false)
       cache        = optional(string, "none")
       datastore_id = optional(string, "local-lvm")
-      interface    = optional(string, "scsi2")
+      interface    = optional(string, "scsi1")
       size         = optional(number, 50)
       device_name  = optional(string, null)
+      discard      = optional(string, "on")
     })), []),
     agent_config = optional(object({
       enabled = optional(bool, true)
@@ -95,6 +97,7 @@ variable "rke2_nodes" {
           is_primary          = optional(bool, false)
           cloud_provider      = optional(string)
           node_taints         = optional(list(string))
+          node_labels         = optional(list(string))
           kube_apiserver_args = optional(list(string))
         })
       }

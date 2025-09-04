@@ -93,6 +93,8 @@ resource "proxmox_virtual_environment_vm" "rke2" {
     type    = each.value.agent_config.type
   }
 
+  scsi_hardware = each.value.scsi_hardware
+
   dynamic "disk" {
     for_each = each.value.disks_config
     content {
@@ -102,6 +104,7 @@ resource "proxmox_virtual_environment_vm" "rke2" {
       datastore_id = disk.value.datastore_id
       interface    = disk.value.interface
       size         = disk.value.size
+      discard      = disk.value.discard
     }
   }
 

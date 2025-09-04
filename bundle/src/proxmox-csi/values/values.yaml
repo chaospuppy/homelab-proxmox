@@ -1,0 +1,80 @@
+config:
+  clusters:
+    - url: "https://pve1.lobster.icu:8006/api2/json"
+      insecure: true
+      token_id: ###ZARF_VAR_PROXMOX_TOKEN_ID###
+      token_secret: ###ZARF_VAR_PROXMOX_TOKEN_SECRET###
+      region: "lobster"
+    - url: "https://pve2.lobster.icu:8006/api2/json"
+      insecure: true
+      token_id: ###ZARF_VAR_PROXMOX_TOKEN_ID###
+      token_secret: ###ZARF_VAR_PROXMOX_TOKEN_SECRET###
+      region: "lobster"
+    - url: "https://pve3.lobster.icu:8006/api2/json"
+      insecure: true
+      token_id: ###ZARF_VAR_PROXMOX_TOKEN_ID###
+      token_secret: ###ZARF_VAR_PROXMOX_TOKEN_SECRET###
+      region: "lobster"
+
+storageClass:
+  - name: proxmox-data-ext4
+    storage: local-lvm
+    reclaimPolicy: Delete
+    fstype: ext4
+    # https://pve.proxmox.com/wiki/Performance_Tweaks
+    cache: none
+    ssd: true
+    #   extraParameters:
+    #     # https://kubernetes-csi.github.io/docs/secrets-and-credentials-storage-class.html
+    #     csi.storage.k8s.io/node-stage-secret-name: "proxmox-csi-secret"
+    #     csi.storage.k8s.io/node-stage-secret-namespace: "kube-system"
+    #     csi.storage.k8s.io/node-expand-secret-name: "proxmox-csi-secret"
+    #     csi.storage.k8s.io/node-expand-secret-namespace: "kube-system"
+    #
+    mountOptions:
+      - discard
+      #
+      #   # I am not recommending to use this option, but it is possible.
+      #   # You should use region and zone topology keys together.
+      #   allowedTopologies:
+      #   - matchLabelExpressions:
+      #     - key: topology.kubernetes.io/region
+      #       values:
+      #       - Region-1
+      #     - key: topology.kubernetes.io/zone
+      #       values:
+      #       - pve-1
+      #       - pve-3
+    annotations:
+      storageclass.kubernetes.io/is-default-class: "true"
+  - name: proxmox-data-ceph
+    storage: CephFS
+    reclaimPolicy: Delete
+    fstype: ext4
+    # https://pve.proxmox.com/wiki/Performance_Tweaks
+    cache: none
+    ssd: false
+    #   extraParameters:
+    #     # https://kubernetes-csi.github.io/docs/secrets-and-credentials-storage-class.html
+    #     csi.storage.k8s.io/node-stage-secret-name: "proxmox-csi-secret"
+    #     csi.storage.k8s.io/node-stage-secret-namespace: "kube-system"
+    #     csi.storage.k8s.io/node-expand-secret-name: "proxmox-csi-secret"
+    #     csi.storage.k8s.io/node-expand-secret-namespace: "kube-system"
+    #
+    mountOptions:
+      - discard
+      #
+      #   # I am not recommending to use this option, but it is possible.
+      #   # You should use region and zone topology keys together.
+      #   allowedTopologies:
+      #   - matchLabelExpressions:
+      #     - key: topology.kubernetes.io/region
+      #       values:
+      #       - Region-1
+      #     - key: topology.kubernetes.io/zone
+      #       values:
+      #       - pve-1
+      #       - pve-3
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: "true"

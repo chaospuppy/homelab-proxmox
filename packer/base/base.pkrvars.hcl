@@ -1,4 +1,4 @@
-proxmox_api_url = "https://pve1.lobster:8006/api2/json"
+proxmox_api_url = "https://pve1.lobster.icu:8006/api2/json"
 proxmox_insecure_url = true
 proxmox_node = "pve1"
 template_name = "ubuntu-2504-base"

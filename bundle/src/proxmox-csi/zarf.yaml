@@ -1,0 +1,29 @@
+kind: ZarfPackageConfig
+metadata:
+  name: proxmox-csi-plugin
+  description: Package to deploy the proxmox CSI controller
+  yolo: true
+  version: 0.0.2
+variables:
+  - name: PROXMOX_TOKEN_ID
+    sensitive: true
+  - name: PROXMOX_TOKEN_SECRET
+    sensitive: true
+components:
+  - name: proxmox-csi-plugin
+    required: true
+    charts:
+      - name: proxmox-csi-plugin
+        version: v0.13.0
+        namespace: kube-system
+        url: https://github.com/sergelogvinov/proxmox-csi-plugin.git
+        gitPath: charts/proxmox-csi-plugin
+        valuesFiles:
+          - ./values/values.yaml
+    # images:
+    #   - ghcr.io/sergelogvinov/proxmox-csi-controller:v0.13.0
+    #   - ghcr.io/sergelogvinov/proxmox-csi-node:v0.13.0
+    #   - registry.k8s.io/sig-storage/csi-attacher:v4.9.0
+    #   - registry.k8s.io/sig-storage/csi-provisioner:v5.3.0
+    #   - registry.k8s.io/sig-storage/csi-resizer:v1.13.2
+    #   - registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.14.0

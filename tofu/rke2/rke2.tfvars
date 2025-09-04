@@ -1,16 +1,16 @@
-proxmox_api_url = "https://pve1.lobster:8006/"
+proxmox_api_url = "https://pve1.lobster.icu:8006/"
 protection      = false
 
 # Set overrides if needed
 rke2_nodes = {
   control-plane-0 = {
     clone_config = {
-      vm_id = 1002
+      vm_id = 1001
     }
-    proxmox_node = "pve2"
+    proxmox_node = "pve1"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -22,6 +22,7 @@ rke2_nodes = {
       host_vars = {
         is_primary          = true
         node_taints         = []
+        node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve1"]
         kube_apiserver_args = []
       }
     }
@@ -32,8 +33,8 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -44,6 +45,7 @@ rke2_nodes = {
       group = "controlplane"
       host_vars = {
         node_taints         = []
+        node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve3"]
         kube_apiserver_args = []
       }
     }
@@ -54,8 +56,8 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -66,6 +68,7 @@ rke2_nodes = {
       group = "controlplane"
       host_vars = {
         node_taints         = []
+        node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
         kube_apiserver_args = []
       }
     }
@@ -79,8 +82,8 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -90,6 +93,7 @@ rke2_nodes = {
     ansible_info = {
       group = "workers"
       host_vars = {
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve3"]
         node_taints = []
       }
     }
@@ -103,8 +107,8 @@ rke2_nodes = {
     }
     proxmox_node = "pve3"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -114,6 +118,7 @@ rke2_nodes = {
     ansible_info = {
       group = "workers"
       host_vars = {
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve3"]
         node_taints = []
       }
     }
@@ -127,8 +132,8 @@ rke2_nodes = {
     }
     proxmox_node = "pve2"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -138,21 +143,22 @@ rke2_nodes = {
     ansible_info = {
       group = "workers"
       host_vars = {
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
         node_taints = []
       }
     }
   }
   worker-nexus-0 = {
     clone_config = {
-      vm_id = 1002
+      vm_id = 1001
     }
     cpu_config = {
-      cores = 2
+      cores = 5
     }
-    proxmox_node = "pve2"
+    proxmox_node = "pve1"
     memory_config = {
-      dedicated = 8192,
-      floating  = 8192,
+      dedicated = 12288,
+      floating  = 12288,
     }
     disks_config = [
       {
@@ -162,6 +168,7 @@ rke2_nodes = {
     ansible_info = {
       group = "workers"
       host_vars = {
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
         node_taints = [
           "is-nexus=true:NoSchedule"
         ]

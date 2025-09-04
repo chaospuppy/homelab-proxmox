@@ -1,4 +1,4 @@
-proxmox_api_url = "https://pve1.lobster:8006/"
+proxmox_api_url = "https://pve1.lobster.icu:8006/"
 protection      = false
 proxmox_node    = "pve1"
 

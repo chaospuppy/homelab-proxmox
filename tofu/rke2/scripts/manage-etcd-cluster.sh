@@ -12,8 +12,6 @@ usage() {
     echo "  list              List members of the etcd cluster."
     echo "  remove <member-id> Remove a member from the etcd cluster."
     echo ""
-    echo "If -u and -p are not provided, the script will attempt to use 'op' CLI for credentials."
-    echo ""
     echo "Example:"
     echo "  $0 -u myuser -p mypassword 192.168.1.100"
     echo "  $0 -u myuser -p mypassword 192.168.1.100 remove 8e9e05c52164694d"
@@ -69,16 +67,9 @@ run_remote_command() {
     sshpass -p "$CP_PASSWORD" ssh -o Ciphers='aes256-ctr,aes192-ctr,aes128-ctr' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${CP_USER}@${CP_IP}" "$cmd"
 }
 
-# If -u and -p are not provided, attempt to use op CLI.
 if [ -z "${CP_USER}" ] && [ -z "${CP_PASSWORD}" ]; then
-  if ! command -v "op" &> /dev/null; then
-    echo "Error: credentials not provided via -u/-p flags and 'op' CLI not found."
+    echo "Error: credentials not provided via -u/-p flags."
     usage
-  else
-    echo "Info: -u and -p not provided. Attempting to use 'op' CLI for credentials."
-    CP_USER=$(op read op://hncd/"SIL node persistent user"/username)
-    CP_PASSWORD=$(op read op://hncd/"SIL node persistent user"/password)
-  fi
 elif [ -z "${CP_USER}" ] || [ -z "${CP_PASSWORD}" ]; then
     echo "Error: Both -u (username) and -p (password) must be provided together."
     usage
