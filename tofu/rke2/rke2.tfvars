@@ -21,7 +21,7 @@ rke2_nodes = {
       group = "controlplane"
       host_vars = {
         is_primary          = true
-        node_taints         = []
+        node_taints         = ["node-role.kubernetes.io/control-plane:NoSchedule"]
         node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve1"]
         kube_apiserver_args = []
       }
@@ -44,7 +44,7 @@ rke2_nodes = {
     ansible_info = {
       group = "controlplane"
       host_vars = {
-        node_taints         = []
+        node_taints         = ["node-role.kubernetes.io/control-plane:NoSchedule"]
         node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve3"]
         kube_apiserver_args = []
       }
@@ -67,7 +67,7 @@ rke2_nodes = {
     ansible_info = {
       group = "controlplane"
       host_vars = {
-        node_taints         = []
+        node_taints         = ["node-role.kubernetes.io/control-plane:NoSchedule"]
         node_labels         = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
         kube_apiserver_args = []
       }
@@ -128,7 +128,7 @@ rke2_nodes = {
       vm_id = 1002
     }
     cpu_config = {
-      cores = 2
+      cores = 6
     }
     proxmox_node = "pve2"
     memory_config = {
@@ -148,12 +148,12 @@ rke2_nodes = {
       }
     }
   }
-  worker-nexus-0 = {
+  worker-3 = {
     clone_config = {
       vm_id = 1001
     }
     cpu_config = {
-      cores = 5
+      cores = 6
     }
     proxmox_node = "pve1"
     memory_config = {
@@ -162,16 +162,14 @@ rke2_nodes = {
     }
     disks_config = [
       {
-        size = "200"
+        size = "100"
       }
     ]
     ansible_info = {
       group = "workers"
       host_vars = {
-        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve2"]
-        node_taints = [
-          "is-nexus=true:NoSchedule"
-        ]
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve1"]
+        node_taints = []
       }
     }
   }

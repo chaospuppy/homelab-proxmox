@@ -76,5 +76,8 @@ storageClass:
       #       - pve-1
       #       - pve-3
 
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    effect: NoSchedule
 nodeSelector:
   node-role.kubernetes.io/control-plane: "true"

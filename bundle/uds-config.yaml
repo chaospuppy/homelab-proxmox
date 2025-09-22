@@ -13,7 +13,12 @@ shared:
   DOMAIN: lobster.icu
 variables:
   init:
-    INIT_STORAGE_CLASS: "proxmox-data-ext4"
+    INIT_REGISTRY_PUSH_USERNAME: zarf-push
+    INIT_REGISTRY_PULL_USERNAME: zarf-pull
+    INIT_REGISTRY_PUSH_PASSWORD: CousCousCentral
+    INIT_REGISTRY_PULL_PASSWORD: CumbersomeCucumber
+    INIT_REGISTRY_URL: registry.lobster.icu:5000
+    INIT_STORAGE_CLASS: proxmox-data-ext4
   metallb-package:
     INTERFACE: "ens18"
     IP_ADDRESS_ADMIN_INGRESSGATEWAY: "192.168.2.20"
@@ -40,6 +45,8 @@ variables:
     LOKI_CHUNKS_BUCKET: loki-chunks
     LOKI_RULER_BUCKET: loki-ruler
     LOKI_ADMIN_BUCKET: loki-admin
+  vault:
+    KC_ACCESS_GROUP: "/vault-access"
   nexus:
     NEXUS_VM_PARAMS: -Dcom.redhat.fips=false -Xms8G -Xmx8G -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -Djava.util.prefs.userRoot=/nexus-data/javaprefs
     NEXUS_DB_ENDPOINT: pg-cluster.postgres.svc.cluster.local
@@ -50,7 +57,7 @@ variables:
     NEXUS_MEMORY_LIMITS: 8Gi
     NEXUS_PVC_SIZE: 50Gi
     NEXUS_REPOSITORIES:
-      - name: lobster-reigstry
+      - name: lobster-registry
         format: docker
         type: hosted
         repoData:
