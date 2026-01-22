@@ -15,7 +15,7 @@ packages:
 
   - name: init
     repository: ghcr.io/zarf-dev/packages/init
-    ref: v0.59.0
+    ref: v0.60.0
 
   - name: metallb-package
     repository: ghcr.io/uds-packages/metallb
@@ -24,7 +24,7 @@ packages:
   # Deploy uds-core base functional layer which includes istio, uds-operator, and uds CRDs
   - name: core-base
     repository: ghcr.io/defenseunicorns/packages/uds/core-base
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
     overrides:
       istio-admin-gateway:
         uds-istio-config:
@@ -161,7 +161,7 @@ packages:
   # Must be run with postgres-db-secrets package if not deploying full bundle
   - name: core-identity-authorization
     repository: ghcr.io/defenseunicorns/packages/uds/core-identity-authorization
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
     imports:
       - name: KEYCLOAK_DB_PASSWORD
         package: postgres-db-secrets
@@ -194,7 +194,7 @@ packages:
   # UDS core runtime security layer which includes neuvector
   - name: core-runtime-security
     repository: ghcr.io/defenseunicorns/packages/uds/core-runtime-security
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
     overrides:
       neuvector:
         core:
@@ -207,7 +207,7 @@ packages:
   # UDS core logging stack which includes loki and vector
   - name: core-logging
     repository: ghcr.io/defenseunicorns/packages/uds/core-logging
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
     imports:
       - name: LOKI_S3_ACCESS_KEY_ID
         package: minio-config
@@ -261,106 +261,110 @@ packages:
   # UDS core monitoring stack which includes prometheus and Grafana
   - name: core-monitoring
     repository: ghcr.io/defenseunicorns/packages/uds/core-monitoring
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
 
   # UDS core metrics server which includes metrics-server
   - name: core-metrics-server
     repository: ghcr.io/defenseunicorns/packages/uds/core-metrics-server
-    ref: 0.38.0-registry1
+    ref: 0.41.0-registry1
 
   # UDS UI
   - name: uds-runtime
     repository: ghcr.io/defenseunicorns/packages/private/uds/uds-runtime
     ref: 0.21.4-registry1
 
-  # Must be run with postgres-db-secrets package if not deploying full bundle
-  - name: nexus
-    repository: ghcr.io/uds-packages/nexus
-    ref: 3.79.0-09-uds.2-registry1
-    imports:
-      - name: NEXUS_DB_PASSWORD
-        package: postgres-db-secrets
-      - name: NEXUS_DB_USERNAME
-        package: postgres-db-secrets
-    overrides:
-      nexus:
-        nexus:
-          variables:
-            - path: "nexus.resources.requests.cpu"
-              name: NEXUS_CPU_REQUESTS
-            - path: "nexus.resources.requests.memory"
-              name: NEXUS_MEMORY_REQUESTS
-            - path: "nexus.resources.limits.cpu"
-              name: NEXUS_CPU_LIMITS
-            - path: "nexus.resources.limits.memory"
-              name: NEXUS_MEMORY_LIMITS
-            - path: "persistence.storageSize"
-              name: NEXUS_PVC_SIZE
-          values:
-            - path: "nexus.docker"
-              value:
-                enabled: true
-                registries:
-                  - host: "lobster-registry.###ZARF_VAR_DOMAIN###"
-                    port: 5000
-            - path: "istio.enabled"
-              value: true
-            - path: "istio.injection"
-              value: "enabled"
-            - path: "istio.nexus.gateways"
-              value:
-                - "istio-tenant-gateway/tenant-gateway"
-            - path: "tolerations"
-              value:
-                - key: "is-nexus"
-                  operator: "Equal"
-                  value: "true"
-                  effect: "NoSchedule"
+  - name: vault
+    repository: ghcr.io/uds-packages/vault
+    ref: 1.20.2-uds.0-registry1
 
-        uds-nexus-config:
-          variables:
-            - path: "postDeployJob.repo.repositories"
-              name: NEXUS_REPOSITORIES
-          values:
-            - path: "sso.enabled"
-              value: true
-            - path: "customNetworkPolicies"
-              value:
-                - direction: "Ingress"
-                  selector:
-                    app: nexus-repository-manager
-                  remoteNamespace: istio-tenant-gateway
-                  remoteSelector:
-                    app: tenant-ingressgateway
-                  port: 5000
-                  description: "Tenant gateway to lobster-registry repository"
-            - path: "postDeployJob.enabled"
-              value: true
-            - path: "postDeployJob.realm.enabled"
-              value: true
-            - path: "postDeployJob.saml.enabled"
-              value: true
-            - path: "postDeployJob.role.enabled"
-              value: true
-            - path: "postDeployJob.routingRules.enabled"
-              value: false
-            - path: "postDeployJob.repo.enabled"
-              value: true
-            - path: "postDeployJob.user.enabled"
-              value: false
-            - path: "postDeployJob.userTokens.enabled"
-              value: true
-            - path: "postDeployJob.userTokens.data.expirationDays"
-              value: 365
-            - path: "postDeployJob.realm.realms"
-              value:
-                - "NexusAuthenticatingRealm"
-                - "SamlRealm"
-                - "User-Token-Realm"
-            - path: "postDeployJob.role.roles"
-              value:
-                - id: "/UDS Core/Admin"
-                  name: "nexus-admin"
-                  description: "Nexus admin role"
-                  roles:
-                    - "nx-admin"
+# Must be run with postgres-db-secrets package if not deploying full bundle
+# - name: nexus
+#   repository: ghcr.io/uds-packages/nexus
+#   ref: 3.79.0-09-uds.2-registry1
+#   imports:
+#     - name: NEXUS_DB_PASSWORD
+#       package: postgres-db-secrets
+#     - name: NEXUS_DB_USERNAME
+#       package: postgres-db-secrets
+#   overrides:
+#     nexus:
+#       nexus:
+#         variables:
+#           - path: "nexus.resources.requests.cpu"
+#             name: NEXUS_CPU_REQUESTS
+#           - path: "nexus.resources.requests.memory"
+#             name: NEXUS_MEMORY_REQUESTS
+#           - path: "nexus.resources.limits.cpu"
+#             name: NEXUS_CPU_LIMITS
+#           - path: "nexus.resources.limits.memory"
+#             name: NEXUS_MEMORY_LIMITS
+#           - path: "persistence.storageSize"
+#             name: NEXUS_PVC_SIZE
+#         values:
+#           - path: "nexus.docker"
+#             value:
+#               enabled: true
+#               registries:
+#                 - host: "lobster-registry.###ZARF_VAR_DOMAIN###"
+#                   port: 5000
+#           - path: "istio.enabled"
+#             value: true
+#           - path: "istio.injection"
+#             value: "enabled"
+#           - path: "istio.nexus.gateways"
+#             value:
+#               - "istio-tenant-gateway/tenant-gateway"
+#           - path: "tolerations"
+#             value:
+#               - key: "is-nexus"
+#                 operator: "Equal"
+#                 value: "true"
+#                 effect: "NoSchedule"
+#
+#       uds-nexus-config:
+#         variables:
+#           - path: "postDeployJob.repo.repositories"
+#             name: NEXUS_REPOSITORIES
+#         values:
+#           - path: "sso.enabled"
+#             value: true
+#           - path: "customNetworkPolicies"
+#             value:
+#               - direction: "Ingress"
+#                 selector:
+#                   app: nexus-repository-manager
+#                 remoteNamespace: istio-tenant-gateway
+#                 remoteSelector:
+#                   app: tenant-ingressgateway
+#                 port: 5000
+#                 description: "Tenant gateway to lobster-registry repository"
+#           - path: "postDeployJob.enabled"
+#             value: true
+#           - path: "postDeployJob.realm.enabled"
+#             value: true
+#           - path: "postDeployJob.saml.enabled"
+#             value: true
+#           - path: "postDeployJob.role.enabled"
+#             value: true
+#           - path: "postDeployJob.routingRules.enabled"
+#             value: false
+#           - path: "postDeployJob.repo.enabled"
+#             value: true
+#           - path: "postDeployJob.user.enabled"
+#             value: false
+#           - path: "postDeployJob.userTokens.enabled"
+#             value: true
+#           - path: "postDeployJob.userTokens.data.expirationDays"
+#             value: 365
+#           - path: "postDeployJob.realm.realms"
+#             value:
+#               - "NexusAuthenticatingRealm"
+#               - "SamlRealm"
+#               - "User-Token-Realm"
+#           - path: "postDeployJob.role.roles"
+#             value:
+#               - id: "/UDS Core/Admin"
+#                 name: "nexus-admin"
+#                 description: "Nexus admin role"
+#                 roles:
+#                   - "nx-admin"

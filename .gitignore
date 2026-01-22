@@ -39,3 +39,6 @@ terraform.rc
 # Packer files
 .packer_cache/
 packer_cache/
+
+# Vault policies
+**/src/populated/*

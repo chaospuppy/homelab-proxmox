@@ -2,13 +2,13 @@ variables:
   - name: BUNDLE_VERSION
     default: 0.0.2
   - name: ADMIN_TLS_KEY_FILE
-    default: "./admin.key"
+    default: "./tls/admin.key"
   - name: ADMIN_TLS_CERT_FILE
-    default: "./admin.crt"
+    default: "./tls/admin.crt"
   - name: TENANT_TLS_KEY_FILE
-    default: "./tenant.key"
+    default: "./tls/tenant.key"
   - name: TENANT_TLS_CERT_FILE
-    default: "./tenant.crt"
+    default: "./tls/tenant.crt"
 tasks:
   - name: build-bundle
     actions:
@@ -33,8 +33,10 @@ tasks:
         description: the name of the directory in which the zarf.yaml to be built resides
     actions:
       - cmd: ./uds zarf package create ./src/$INPUT_PACKAGE_DIRECTORY -o ./build/ --sbom-out ./bundle/build/sbom -a amd64 --confirm
+  - name: env
+    actions:
+      - cmd: env
 
   - name: deploy-bundle
-    envPath: ../.proxmox
     actions:
-      - cmd: ./uds deploy uds-bundle-lobster-amd64-${BUNDLE_VERSION}.tar.zst --confirm --set ADMIN_TLS_KEY="$(cat ${ADMIN_TLS_KEY_FILE} | base64)" --set ADMIN_TLS_CERT="$(cat ${ADMIN_TLS_CERT_FILE} | base64)" --set TENANT_TLS_KEY="$(cat ${TENANT_TLS_KEY_FILE} | base64)" --set TENANT_TLS_CERT="$(cat ${TENANT_TLS_CERT_FILE} | base64)" --set PROXMOX_TOKEN_ID="${PROXMOX_TOKEN_ID}" --set PROXMOX_TOKEN_SECRET="${PROXMOX_TOKEN_SECRET}"
+      - cmd: ./uds deploy uds-bundle-lobster-amd64-${BUNDLE_VERSION}.tar.zst --log-level=debug --confirm --set ADMIN_TLS_KEY="$(cat ${ADMIN_TLS_KEY_FILE} | base64)" --set ADMIN_TLS_CERT="$(cat ${ADMIN_TLS_CERT_FILE} | base64)" --set TENANT_TLS_KEY="$(cat ${TENANT_TLS_KEY_FILE} | base64)" --set TENANT_TLS_CERT="$(cat ${TENANT_TLS_CERT_FILE} | base64)" --set PROXMOX_TOKEN_ID="${PROXMOX_TOKEN_ID}" --set PROXMOX_TOKEN_SECRET="${PROXMOX_TOKEN_SECRET}"
