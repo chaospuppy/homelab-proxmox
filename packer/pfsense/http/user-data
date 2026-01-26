@@ -1,0 +1,44 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: us
+  network:
+    network:
+      version: 2
+      ethernets:
+        ens18:
+          dhcp4: true
+  storage:
+    layout:
+      name: lvm
+  user-data:
+    users:
+      - name: root
+        lock_passwd: false
+        hashed_passwd: "$6$U.v9fwOnLIEtfCFL$FjIJaHU8bCER6Eln0ASccZYaveGTMa0dlyW2Uo.RtTb8fejS1PDLbUs3.9ALeDtgXbwlaJK/m8qFQAYtoilG0."
+
+      - name: chaospuppy
+        sudo: ['ALL=(ALL) NOPASSWD:ALL']
+        groups: sudo
+        shell: /bin/bash
+        lock_passwd: false
+        hashed_passwd: "$6$A5gtfUtj2wugwpzH$ely.iIwn5rVz2jwHYkr0m4aIsmXlRE5IKl7I7sq1xS7id8VaJomw18vCiKT4nsQfi6TYeI2yaX0VJ/9RsLB0z0" 
+        ssh_redirect_user: false
+        ssh_authorized_keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8rGfF5D+aaN/xMfqV29tAdAP1YJ5saMDa1KZillxsKAZtNq5Sx2QTjtVYD+Q1vg0oKR23+4JCpzN1IhVUOgzkxFSUHdaFtK4g11bHtHes8XjPDyJT+qn+RtNlPMr1AJMZT/+7rIHsxrKDL5AVr02yxWN09Zxj2tv0iQaANhtwBUuggkd2fo67dqEk90zZ0FatwWaqT+d79mOcGBjEN/ZxZ7TbLVuVV5JnR5CHUMifViMyOYVxYANix76tCGy177gG3iNdoH6UZX1StALYwx2WxWCbxQ2L3fwuhoyw9JDJPGFF4A9iVCr95nemHnnPlU/AYHAviVLhSoAkVnkAe2PO1fWoX9mniFdRZSa1r4rxTUihE5muW52iI6D5QSbk2KgGrF2YPwIH26qEGO9huKqm/lTmIGPP+mzRsZJHj1MbejSlsIg9Sb/ygDfrsd8+85gt80RqJOQet+BYBbLuO3BtSXkXcUqNBMN1Ey5vb2nfUvgB0+q84W4V3zD2b130q60= chaospuppy
+    ssh_pwauth: true
+    disable_root: false
+    preserve_hostname: true
+    runcmd:
+      - systemctl restart ssh
+  ssh:
+    install-server: true
+    allow-pw: true
+  package_update: true
+  package_upgrade: true
+  packages:
+    - qemu-guest-agent
+  late-commands:
+    - curtin in-target --target /target -- /usr/bin/systemctl enable qemu-guest-agent
