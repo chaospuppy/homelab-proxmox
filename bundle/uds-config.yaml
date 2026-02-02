@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/defenseunicorns/uds-cli/main/uds.schema.json
 options:
   log_level: info
   architecture: amd64
@@ -48,13 +47,14 @@ variables:
   vault:
     KC_ACCESS_GROUP: "/vault-access"
   nexus:
-    NEXUS_VM_PARAMS: -Dcom.redhat.fips=false -Xms8G -Xmx8G -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -Djava.util.prefs.userRoot=/nexus-data/javaprefs
+    # Uncomment for pre-upstream migration 
+    NEXUS_VM_PARAMS: -Dcom.redhat.fips=false -Xms4G -Xmx4G -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -Djava.util.prefs.userRoot=/nexus-data/javaprefs
     NEXUS_DB_ENDPOINT: pg-cluster.postgres.svc.cluster.local
     NEXUS_SSO_ENABLED: true
-    NEXUS_CPU_REQUESTS: "2"
+    NEXUS_CPU_REQUESTS: "1"
     NEXUS_CPU_LIMITS: "2"
-    NEXUS_MEMORY_REQUESTS: 4Gi
-    NEXUS_MEMORY_LIMITS: 8Gi
+    NEXUS_MEMORY_REQUESTS: 2Gi
+    NEXUS_MEMORY_LIMITS: 4Gi
     NEXUS_PVC_SIZE: 50Gi
     NEXUS_REPOSITORIES:
       - name: lobster-registry
