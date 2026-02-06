@@ -173,4 +173,29 @@ rke2_nodes = {
       }
     }
   }
+  worker-4 = {
+    clone_config = {
+      vm_id = 1003
+    }
+    cpu_config = {
+      cores = 6
+    }
+    proxmox_node = "pve3"
+    memory_config = {
+      dedicated = 12288,
+      floating  = 12288,
+    }
+    disks_config = [
+      {
+        size = "100"
+      }
+    ]
+    ansible_info = {
+      group = "workers"
+      host_vars = {
+        node_labels = ["topology.kubernetes.io/region=lobster", "topology.kubernetes.io/zone=pve3"]
+        node_taints = []
+      }
+    }
+  }
 }

@@ -9,6 +9,7 @@ variables:
     default: "./tls/tenant.key"
   - name: TENANT_TLS_CERT_FILE
     default: "./tls/tenant.crt"
+  - name: PACKAGES
 tasks:
   - name: build-bundle
     actions:
@@ -40,3 +41,7 @@ tasks:
   - name: deploy-bundle
     actions:
       - cmd: ./uds deploy uds-bundle-lobster-amd64-${BUNDLE_VERSION}.tar.zst --log-level=debug --confirm --set ADMIN_TLS_KEY="$(cat ${ADMIN_TLS_KEY_FILE} | base64)" --set ADMIN_TLS_CERT="$(cat ${ADMIN_TLS_CERT_FILE} | base64)" --set TENANT_TLS_KEY="$(cat ${TENANT_TLS_KEY_FILE} | base64)" --set TENANT_TLS_CERT="$(cat ${TENANT_TLS_CERT_FILE} | base64)" --set PROXMOX_TOKEN_ID="${PROXMOX_TOKEN_ID}" --set PROXMOX_TOKEN_SECRET="${PROXMOX_TOKEN_SECRET}"
+
+  - name: deploy-bundle-packages
+    actions:
+      - cmd: ./uds deploy uds-bundle-lobster-amd64-${BUNDLE_VERSION}.tar.zst --log-level=debug --confirm --set ADMIN_TLS_KEY="$(cat ${ADMIN_TLS_KEY_FILE} | base64)" --set ADMIN_TLS_CERT="$(cat ${ADMIN_TLS_CERT_FILE} | base64)" --set TENANT_TLS_KEY="$(cat ${TENANT_TLS_KEY_FILE} | base64)" --set TENANT_TLS_CERT="$(cat ${TENANT_TLS_CERT_FILE} | base64)" --set PROXMOX_TOKEN_ID="${PROXMOX_TOKEN_ID}" --set PROXMOX_TOKEN_SECRET="${PROXMOX_TOKEN_SECRET}" --packages "${PACKAGES}"
