@@ -1,0 +1,34 @@
+workloadGroups:
+  fleeting-runners:
+    namespace: fleeting-runners
+    labels:
+      experimental: "true"
+    serviceAccount: "default"
+
+ipAddressPools:
+  istiod-ingressgateway:
+    namespace: metallb-system
+    ipAddresses:
+      - 192.168.2.21/32
+    serviceAllocation:
+      namespaces:
+        - istio-istiod-gateway
+      priority: 50
+      serviceSelectors:
+        - matchLabels:
+            app: istiod-ingressgateway
+
+virtualService:
+  namespace: istio-system
+  gateways:
+    - istio-istiod-gateway/istiod-gateway
+  istiodPort: 15012
+  matchPort: 443
+
+l2Advertisements:
+  istiod-gateway:
+    namespace: metallb-system
+    interfaces:
+      - ens18
+    ipAddressPools:
+      - istiod-ingressgatway

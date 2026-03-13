@@ -1,0 +1,32 @@
+kind: ZarfPackageConfig
+metadata:
+  name: istio-external-workload
+  description: "Custom gateway for exposing istiod"
+  version: "0.0.1"
+  architecture: amd64
+components:
+  - name: istio-istiod-gateway
+    required: true
+    charts:
+      - name: gateway
+        url: https://istio-release.storage.googleapis.com/charts
+        version: 1.28.3
+        releaseName: istiod-ingressgateway
+        namespace: istio-istiod-gateway
+      - name: uds-istio-config
+        version: v0.63.0
+        url: https://github.com/defenseunicorns/uds-core.git
+        gitPath: src/istio/charts/uds-istio-config
+        namespace: istio-istiod-gateway
+        valuesFiles:
+          - ./values/uds-istio-config-values.yaml
+  - name: external-workloads
+    required: true
+    charts:
+      - name: istio-external-workloads
+        namespace: istio-system
+        version: 0.1.0
+        localPath: ./chart/
+        valuesFiles:
+          - ./values/external-workload-values.yaml
+

@@ -1,0 +1,57 @@
+# Copyright 2024 Defense Unicorns
+# SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Defense-Unicorns-Commercial
+
+# The gateway name prefix
+name: istiod
+
+# Domain name for the gateway
+domain: "istio-system.svc"
+
+tls:
+  #   # The TLS certificate for the gateway, if not in 'PASSTHROUGH' mode (base64 encoded)
+  #   cert: ""
+
+  #   # The TLS key for the gateway, if not in 'PASSTHROUGH' mode (base64 encoded)
+  #   key: ""
+
+  #   # The CA certificate for the gateway when using `MUTUAL' or 'OPTIONAL_MUTUAL' (base64 encoded)
+  #   cacert: ""
+
+  #   # The name of the secret containing the TLS certificate to use for this gateway, this will override cert, key and cacert
+  #   credentialName: ""
+
+  #   # Map of gateway server entries
+  servers:
+    #     # Name of the gateway port to use for TLS, this is effectively a "list" in map form
+    https:
+      #       # The TLS mode for the gateway. One of `SIMPLE`, `MUTUAL`, 'OPTIONAL_MUTUAL', `PASSTHROUGH`
+      mode: PASSTHROUGH
+
+      #       # Hosts to add to this gateway
+      hosts:
+        - "istiod"
+
+#       # TLS certificate scoped to this specific server, if not set, will default to the gateway-level TLS certificate
+#       cert: ""
+
+#       # TLS key scoped to this specific server, if not set, will default to the gateway-level TLS key
+#       key: ""
+
+#       # TLS CA certificate scoped to this specific server, if not set, will default to the gateway-level TLS certificate
+#       cacert: ""
+
+#   # Whether to support TLS 1.2 (if false, only TLS 1.3 will be supported)
+#   supportTLSV1_2: true
+
+# Enable root (apex) domain configuration. When true, the Gateway creates dedicated server blocks
+# for the root domain (e.g. uds.dev). This is required because wildcard hosts (e.g. *.uds.dev) do not match the root.
+rootDomain:
+  enabled: false
+  enableHttpsRedirect: true
+  tls: {}
+  #   mode: SIMPLE                          # TLS mode (e.g., SIMPLE, MUTUAL). Default is SIMPLE.
+  #   credentialName: ""                    # Specify a TLS secret name if pre-created. Set to "" to auto-create using the cert data.
+  #   supportTLSV1_2: true                  # Set to true to support TLS 1.2, or false to enforce TLS 1.3 only.
+  #   cert: "BASE64_ENCODED_CERTIFICATE"    # Base64-encoded certificate data. For self-signed certs, cert and cacert are typically the same.
+  #   key: "BASE64_ENCODED_PRIVATE_KEY"     # Base64-encoded private key.
+  #   cacert: "BASE64_ENCODED_CERTIFICATE"  # Base64-encoded CA certificate (use the same as cert for self-signed).

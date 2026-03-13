@@ -1,0 +1,13 @@
+{{ range $name,$group := .Values.workloadGroups }}
+apiVersion: networking.istio.io/v1
+kind: WorkloadGroup
+metadata:
+  name: {{ $name }}
+  namespace: {{ $group.namespace }}
+spec:
+  metadata:
+    labels:
+      {{- toYaml $group.labels | nindent 6 }}
+  template:
+    serviceAccount: {{ $group.serviceAccount }}
+{{ end }}
