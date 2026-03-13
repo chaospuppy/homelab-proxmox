@@ -31,4 +31,4 @@ l2Advertisements:
     interfaces:
       - ens18
     ipAddressPools:
-      - istiod-ingressgatway
+      - istiod-ingressgateway

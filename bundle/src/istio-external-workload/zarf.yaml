@@ -1,10 +1,19 @@
 kind: ZarfPackageConfig
 metadata:
   name: istio-external-workload
-  description: "Custom gateway for exposing istiod"
+  description: "Custom gateway for exposing istiod and adding external workloads to the istio service mesh"
   version: "0.0.1"
   architecture: amd64
 components:
+  - name: external-workloads
+    required: true
+    charts:
+      - name: istio-external-workloads
+        namespace: istio-system
+        version: 0.1.0
+        localPath: ./chart/
+        valuesFiles:
+          - ./values/external-workload-values.yaml
   - name: istio-istiod-gateway
     required: true
     charts:
@@ -20,13 +29,4 @@ components:
         namespace: istio-istiod-gateway
         valuesFiles:
           - ./values/uds-istio-config-values.yaml
-  - name: external-workloads
-    required: true
-    charts:
-      - name: istio-external-workloads
-        namespace: istio-system
-        version: 0.1.0
-        localPath: ./chart/
-        valuesFiles:
-          - ./values/external-workload-values.yaml
 
