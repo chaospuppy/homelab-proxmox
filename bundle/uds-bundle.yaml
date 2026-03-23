@@ -26,6 +26,33 @@ packages:
     repository: ghcr.io/defenseunicorns/packages/uds/core-base
     ref: 0.63.0-registry1
     overrides:
+      istio-controlplane:
+        istiod:
+          values:
+            # - path: env
+            #   value:
+            #     AMBIENT_ENABLE_MULTI_NETWORK: true
+            #     AMBIENT_ENABLE_BAGGAGE: true
+            # - path: global.meshID
+            #   value: "cluster.local"
+            # - path: global.multiCluster.clusterName
+            #   value: "Kubernetes"
+            - path: global.network
+              value: "kube-network"
+              # - path: global.meshNetworks
+              #   value:
+              # kube-network:
+              #   endpoints:
+              #     - fromRegistry: Kubernetes
+              #   gateways:
+              #     - address: istiod-ingressgateway.istio-istiod-gateway.svc.cluster.local
+              #       port: 15443
+              # vm-network:
+              #   endpoints:
+              #     - fromCidr: 192.168.2.0/24
+              #   gateways:
+              #     - address: "192.168.2.21"
+              #       port: 15443
       istio-admin-gateway:
         uds-istio-config:
           variables:

@@ -14,19 +14,13 @@ components:
         localPath: ./chart/
         valuesFiles:
           - ./values/external-workload-values.yaml
-  - name: istio-istiod-gateway
+  - name: istio-eastwestgateway
     required: true
     charts:
       - name: gateway
         url: https://istio-release.storage.googleapis.com/charts
         version: 1.28.3
-        releaseName: istiod-ingressgateway
-        namespace: istio-istiod-gateway
-      - name: uds-istio-config
-        version: v0.63.0
-        url: https://github.com/defenseunicorns/uds-core.git
-        gitPath: src/istio/charts/uds-istio-config
-        namespace: istio-istiod-gateway
+        releaseName: istio-eastwestgateway
+        namespace: istio-system
         valuesFiles:
-          - ./values/uds-istio-config-values.yaml
-
+          - ./values/istio-gateway-values.yaml

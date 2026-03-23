@@ -1,0 +1,17 @@
+{{- if .Values.gatewayv2.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  {{- if .Values.gatewayv2.labels }}
+  labels:
+  {{ .Values.gatewayv2.labels | toYaml | nindent 6 }}
+  {{- end }}
+  name: {{ .Values.gatewayv2.name }}
+  namespace: {{ .Values.gatewayv2.namespace }}
+spec:
+  gatewayClassName: {{ .Values.gatewayv2.gatewayclass }}
+  listeners:
+  {{- range $listener := .Values.gatewayv2.listeners }}
+  - {{- $listener | toYaml | nindent 6 }}
+  {{- end}}
+{{- end }}

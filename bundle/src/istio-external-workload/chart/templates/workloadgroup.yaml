@@ -10,4 +10,8 @@ spec:
       {{- toYaml $group.labels | nindent 6 }}
   template:
     serviceAccount: {{ $group.serviceAccount }}
+    {{- if $group.network }}
+    network: {{ $group.network }}
+    {{- end }}
+
 {{ end }}

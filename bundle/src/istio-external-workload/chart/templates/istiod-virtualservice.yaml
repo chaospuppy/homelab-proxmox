@@ -1,3 +1,4 @@
+{{- if .Values.virtualService.enabled }}
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -17,6 +18,16 @@ spec:
             port:
               number: {{ .Values.virtualService.istiodPort }}
       match:
-        - port: {{ .Values.virtualService.matchPort }}
+        - port: {{ .Values.virtualService.istiodPort }}
           sniHosts:
             - "*"
+    - route:
+        - destination:
+            host: istiod.{{ .Values.virtualService.namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.virtualService.webhookPort }}
+      match:
+        - port: {{ .Values.virtualService.webhookPort }}
+          sniHosts:
+            - "*"
+{{- end }}

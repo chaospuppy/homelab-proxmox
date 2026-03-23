@@ -1,4 +1,5 @@
 {{ range $name,$ad := .Values.l2Advertisements }}
+---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:

@@ -1,29 +1,43 @@
 workloadGroups:
   fleeting-runners:
     namespace: fleeting-runners
-    labels:
-      experimental: "true"
+    # namespaceLabels:
+    #   istio.io/dataplane-mode: ambient
+    network: vm-network
+    labels: {}
     serviceAccount: "default"
 
 ipAddressPools:
-  istiod-ingressgateway:
+  istio-eastwestgateway:
     namespace: metallb-system
     ipAddresses:
       - 192.168.2.21/32
     serviceAllocation:
       namespaces:
-        - istio-istiod-gateway
+        - istio-system
       priority: 50
       serviceSelectors:
         - matchLabels:
-            app: istiod-ingressgateway
+            app: istio-eastwestgateway
+            # istio-eastwestgateway:
+            #   namespace: metallb-system
+            #   ipAddresses:
+            #     - 192.168.2.30/32
+            #   serviceAllocation:
+            #     namespaces:
+            #       - istio-system
+            #     priority: 50
+            #     serviceSelectors:
+            #       - matchLabels:
+            #           app: istio-eastwestgateway
 
 virtualService:
+  enabled: true
   namespace: istio-system
   gateways:
-    - istio-istiod-gateway/istiod-gateway
+    - istio-system/istio-eastwestgateway
   istiodPort: 15012
-  matchPort: 443
+  webhookPort: 15017
 
 l2Advertisements:
   istiod-gateway:
@@ -31,4 +45,73 @@ l2Advertisements:
     interfaces:
       - ens18
     ipAddressPools:
-      - istiod-ingressgateway
+      - istio-eastwestgateway
+      # istio-eastwestgateway:
+      #   namespace: metallb-system
+      #   interfaces:
+      #     - ens18
+      #   ipAddressPools:
+      #     - istio-eastwestgateway
+
+gateway:
+  enabled: true
+  name: istio-eastwestgateway
+  namespace: istio-system
+  labels:
+    topology.istio.io/network: "kube-network"
+  selector:
+    app: istio-eastwestgateway
+  servers:
+    # - hosts:
+    #     - "*.svc.cluster.local"
+    #     - "*.svc.cluster"
+    #     - "*.svc"
+    #   port:
+    #     name: hbone
+    #     number: 15008
+    #     protocol: HTTPS
+    #   tls:
+    #     mode: ISTIO_MUTUAL
+    - hosts:
+        - "istiod.istio-system.svc"
+      port:
+        name: webhook
+        number: 15017
+        protocol: TLS
+      tls:
+        mode: PASSTHROUGH
+    - hosts:
+        - "istiod.istio-system.svc"
+      port:
+        name: istiod
+        number: 15012
+        protocol: TLS
+      tls:
+        mode: PASSTHROUGH
+    - hosts:
+        - "*.svc.cluster.local"
+        - "*.svc.cluster"
+        - "*.svc"
+      port:
+        name: https
+        number: 15443
+        protocol: HTTPS
+      tls:
+        mode: AUTO_PASSTHROUGH
+
+gatewayv2:
+  enabled: false
+  name: istio-eastwestgateway
+  namespace: istio-system
+  gatewayclass: "istio-east-west"
+  labels:
+    topology.istio.io/network: "kube-network"
+    app: istio-eastwestgateway
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+      tls:
+        mode: Terminate
+        options:
+          gateway.istio.io/tls-terminate-mode: ISTIO_MUTUAL
