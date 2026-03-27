@@ -1,0 +1,10 @@
+{{ range $name,$group := .Values.workloadGroups }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $group.namespace }}
+  {{- if $group.namespaceLabels }}
+  labels:
+    {{ $group.namepaceLabels }}
+  {{- end }}
+{{ end }}

@@ -1,0 +1,23 @@
+{{ range $name,$pool := .Values.ipAddressPools }}
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ $name }}
+  namespace: {{ $pool.namespace }}
+spec:
+  addresses:
+    {{- range $pool.ipAddresses }}
+    - {{ . }}
+    {{- end }}
+  autoAssign: true
+  avoidBuggyIPs: false
+  serviceAllocation:
+    namespaces:
+      {{- range $pool.serviceAllocation.namespaces }}
+      - {{ . }}
+      {{- end }}
+    priority: {{ $pool.serviceAllocation.priority }}
+    serviceSelectors:
+    {{- toYaml $pool.serviceAllocation.serviceSelectors | nindent 6 }}
+{{ end }}

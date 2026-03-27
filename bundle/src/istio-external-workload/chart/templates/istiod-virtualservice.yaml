@@ -1,0 +1,33 @@
+{{- if .Values.virtualService.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: istiod
+  namespace: {{ .Values.virtualService.namespace }}
+spec:
+  hosts:
+    - "*"
+  gateways:
+    {{- range .Values.virtualService.gateways }}
+    - {{ . }}
+    {{- end }}
+  tls:
+    - route:
+        - destination:
+            host: istiod.{{ .Values.virtualService.namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.virtualService.istiodPort }}
+      match:
+        - port: {{ .Values.virtualService.istiodPort }}
+          sniHosts:
+            - "*"
+    - route:
+        - destination:
+            host: istiod.{{ .Values.virtualService.namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.virtualService.webhook.gatewayPort }}
+      match:
+        - port: {{ .Values.virtualService.webhook.servicePort }}
+          sniHosts:
+            - "*"
+{{- end }}

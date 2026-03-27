@@ -1,0 +1,9 @@
+apiVersion: v2
+name: istio-external-workloads
+description: >
+  Configures Istio external workload infrastructure, including the
+  istio-external-workloads namespace, a WorkloadGroup for fleeting runners,
+  an Istio VirtualService routing istiod traffic, and MetalLB IPAddressPool
+  and L2Advertisement for the istiod ingress gateway.
+type: application
+version: 0.1.0

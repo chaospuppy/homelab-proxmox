@@ -26,6 +26,9 @@ tasks:
       - task: build-package
         with:
           package-directory: proxmox-csi
+      - task: build-package
+        with:
+          package-directory: istio-external-workload
       - cmd: ./uds create --version ${BUNDLE_VERSION} . -a amd64 --confirm
 
   - name: build-package
