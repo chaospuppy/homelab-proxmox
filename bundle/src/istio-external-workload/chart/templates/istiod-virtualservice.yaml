@@ -25,9 +25,9 @@ spec:
         - destination:
             host: istiod.{{ .Values.virtualService.namespace }}.svc.cluster.local
             port:
-              number: {{ .Values.virtualService.webhookPort }}
+              number: {{ .Values.virtualService.webhook.gatewayPort }}
       match:
-        - port: {{ .Values.virtualService.webhookPort }}
+        - port: {{ .Values.virtualService.webhook.servicePort }}
           sniHosts:
             - "*"
 {{- end }}

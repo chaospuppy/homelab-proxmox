@@ -14,13 +14,13 @@ components:
         localPath: ./chart/
         valuesFiles:
           - ./values/external-workload-values.yaml
-  - name: istio-eastwestgateway
+  - name: istiod-gateway
     required: true
     charts:
       - name: gateway
         url: https://istio-release.storage.googleapis.com/charts
-        version: 1.28.3
-        releaseName: istio-eastwestgateway
+        version: 1.29.1
+        releaseName: istiod-gateway
         namespace: istio-system
         valuesFiles:
           - ./values/istio-gateway-values.yaml

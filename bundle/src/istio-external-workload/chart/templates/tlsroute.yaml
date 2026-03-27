@@ -1,0 +1,20 @@
+{{- if .Values.tlsRoute.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: TLSRoute
+metadata:
+  name: {{ .Values.tlsRoute.name }}
+  namespace: {{ .Values.tlsRoute.namespace }}
+spec:
+  parentRefs:
+  {{-  range .Values.tlsRoute.parentRefs }}
+  - {{ . | toYaml | nindent 6}}
+  {{- end  }}
+  hostnames:
+  {{- range .Values.tlsRoute.hostnames }}
+  - {{ . | toYaml | nindent 6 }}
+  {{- end }}
+  rules:
+  {{- range .Values.tlsRoute.rules }}
+  - {{ . | toYaml | nindent 6}}
+  {{- end }}
+{{- end }}
