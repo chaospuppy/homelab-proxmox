@@ -265,105 +265,13 @@ packages:
     repository: ghcr.io/uds-packages/private/runtime
     ref: 1.20260115.0-uds.0-unicorn
 
-  # - name: vault
-  #   repository: ghcr.io/uds-packages/vault
-  #   ref: 1.20.2-uds.0-registry1
-
-  # Must be run with postgres-db-secrets package if not deploying full bundle
-  # - name: nexus
-  #   repository: ghcr.io/uds-packages/nexus
-  #   ref: 3.79.0-09-uds.6-registry1
-  #   imports:
-  #     - name: NEXUS_DB_PASSWORD
-  #       package: postgres-db-secrets
-  #     - name: NEXUS_DB_USERNAME
-  #       package: postgres-db-secrets
-  #   overrides:
-  #     nexus:
-  #       nexus:
-  #         variables:
-  #           - path: "nexus.resources.requests.cpu"
-  #             name: NEXUS_CPU_REQUESTS
-  #           - path: "nexus.resources.requests.memory"
-  #             name: NEXUS_MEMORY_REQUESTS
-  #           - path: "nexus.resources.limits.cpu"
-  #             name: NEXUS_CPU_LIMITS
-  #           - path: "nexus.resources.limits.memory"
-  #             name: NEXUS_MEMORY_LIMITS
-  #           - path: "persistence.storageSize"
-  #             name: NEXUS_PVC_SIZE
-  #         values:
-  #           - path: "nexus.docker"
-  #             value:
-  #               enabled: true
-  #               registries:
-  #                 - host: "lobster-registry.###ZARF_VAR_DOMAIN###"
-  #                   port: 5000
-  #           - path: "istio.enabled"
-  #             value: true
-  #           - path: "istio.injection"
-  #             value: "enabled"
-  #           - path: "istio.nexus.gateways"
-  #             value:
-  #               - "istio-tenant-gateway/tenant-gateway"
-  #           - path: "tolerations"
-  #             value:
-  #               - key: "is-nexus"
-  #                 operator: "Equal"
-  #                 value: "true"
-  #                 effect: "NoSchedule"
-  #
-  #       uds-nexus-config:
-  #         variables:
-  #           - path: "postDeployJob.repo.repositories"
-  #             name: NEXUS_REPOSITORIES
-  #         values:
-  #           - path: "sso.enabled"
-  #             value: false
-  #           - path: "customNetworkPolicies"
-  #             value:
-  #               - direction: "Ingress"
-  #                 selector:
-  #                   app: nexus-repository-manager
-  #                 remoteNamespace: istio-tenant-gateway
-  #                 remoteSelector:
-  #                   app: tenant-ingressgateway
-  #                 port: 5000
-  #                 description: "Tenant gateway to lobster-registry repository"
-  #           - path: "postDeployJob.enabled"
-  #             value: false
-  #           - path: "postDeployJob.realm.enabled"
-  #             value: false
-  #           - path: "postDeployJob.saml.enabled"
-  #             value: false
-  #           - path: "postDeployJob.role.enabled"
-  #             value: false
-  #           - path: "postDeployJob.routingRules.enabled"
-  #             value: false
-  #           - path: "postDeployJob.repo.enabled"
-  #             value: false
-  #           - path: "postDeployJob.user.enabled"
-  #             value: false
-  #           - path: "postDeployJob.userTokens.enabled"
-  #             value: false
-  #           - path: "postDeployJob.userTokens.data.expirationDays"
-  #             value: 365
-  #           - path: "postDeployJob.realm.realms"
-  #             value:
-  #               - "NexusAuthenticatingRealm"
-  #               - "SamlRealm"
-  #               - "User-Token-Realm"
-  #           - path: "postDeployJob.role.roles"
-  #             value:
-  #               - id: "/UDS Core/Admin"
-  #                 name: "nexus-admin"
-  #                 description: "Nexus admin role"
-  #                 roles:
-  #                   - "nx-admin"
+    # - name: vault
+    #   repository: ghcr.io/uds-packages/vault
+    #   ref: 1.20.2-uds.0-registry1
 
   - name: nexus
-    path: ./zarf-package-nexus-amd64-dev-registry1.tar.zst
-    ref: dev
+    repository: registry.defenseunicorns.com/hncd/nexus
+    ref: 3.90.1-01-uds.0-registry1
     imports:
       - name: NEXUS_DB_PASSWORD
         package: postgres-db-secrets
@@ -384,8 +292,21 @@ packages:
             - path: "pvc.storage"
               name: NEXUS_PVC_SIZE
           values:
-            - path: "pvc.existingClaim"
-              value: "nexus-repository-manager-data"
+            # - path: "pvc.existingClaim"
+            #   value: "nexus-data-nexus-nxrm-ha-0"
+            - path: statefulset.initContainers
+              value: []
+            - path: statefulset.podSecurityContext
+              value:
+                fsGroup: 200
+                runAsUser: 200
+                runAsGroup: 200
+            - path: storageClass.name
+              value: proxmox-data-ext4
+            - path: pvc.volumeClaimTemplate.enabled
+              value: true
+            # - path: pvc.accessModes
+            #   value: ReadWriteMany
             - path: "nexus.docker"
               value:
                 enabled: true

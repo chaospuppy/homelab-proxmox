@@ -5,7 +5,7 @@ apt update -y
 apt install ubuntu-advantage-tools -y
 # Register with ubuntu pro if token is provided
 if [ -n "$UBUNTU_PRO_TOKEN" ]; then
-  pro attch "$UBUNTU_PRO_TOKEN"
+  pro attach "$UBUNTU_PRO_TOKEN"
 fi
 
 # sysctl changes for UDS Core apps - (originally from https://docs-bigbang.dso.mil/latest/docs/prerequisites/os-preconfiguration/)
