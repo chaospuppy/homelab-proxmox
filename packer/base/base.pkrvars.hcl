@@ -1,9 +1,9 @@
-proxmox_api_url = "https://pve1.lobster.icu:8006/api2/json"
+proxmox_api_url = "https://pve2.lobster.icu:8006/api2/json"
 proxmox_insecure_url = true
-proxmox_node = "pve1"
+proxmox_node = "pve2"
 template_name = "ubuntu-2504-base"
 vm_name = "base"
-template_version = "0.0.2"
+template_version = "0.0.3"
 template_description = "A base template that can be cloned from and used to provision other VMs"
 iso_file = "local:iso/ubuntu-25.04-live-server-amd64.iso"
 iso_type = "scsi"
